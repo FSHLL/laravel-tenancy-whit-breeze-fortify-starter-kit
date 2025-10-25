@@ -1,11 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Tenant Details') }}
-            </h2>
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                    {{ __('User Details') }}
+                </h2>
+            </div>
             <div class="flex gap-3">
-                <a href="{{ route('tenants.index') }}"
+                <a href="{{ route('tenants.users.index', $tenant) }}"
                     class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="w-4 h-4 mr-2">
@@ -13,7 +15,7 @@
                     </svg>
                     {{ __('Back to List') }}
                 </a>
-                <a href="{{ route('tenants.edit', $tenant) }}"
+                <a href="{{ route('tenants.users.edit', [$tenant, $user]) }}"
                     class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="w-4 h-4 mr-2">
@@ -29,9 +31,6 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <!-- Basic Information -->
-
-            @include('tenants.users.partials.nav')
-
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 sm:p-8">
                     <div class="flex items-center gap-4 mb-6">
@@ -40,45 +39,58 @@
                                 stroke-width="1.5" stroke="currentColor"
                                 class="w-6 h-6 text-indigo-600 dark:text-indigo-400">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-4.25L12 9.75l4.5-4.25L21 9" />
+                                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                             </svg>
                         </div>
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {{ __('Basic Information') }}
+                                {{ __('User Information') }}
                             </h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ __('General details about this tenant') }}
+                                {{ __('General details about this user') }}
                             </p>
                         </div>
                     </div>
 
                     <dl class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Tenant ID') }}</dt>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('User ID') }}</dt>
                             <dd class="mt-1">
                                 <span
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                                    {{ $tenant->id }}
+                                    #{{ $user->id }}
                                 </span>
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Name') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $user->name }}
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Email') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                {{ $user->email }}
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Tenant') }}</dt>
+                            <dd class="mt-1">
+                                <a href="{{ route('tenants.show', $tenant) }}"
+                                    class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 text-sm">
+                                    {{ $tenant->id }}
+                                </a>
                             </dd>
                         </div>
 
                         <div>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Created') }}</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $tenant->created_at->toDayDateTimeString() }}
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Status') }}</dt>
-                            <dd class="mt-1">
-                                <span
-                                    class="inline-flex items-center gap-1 rounded-full bg-green-50 dark:bg-green-900/30 px-2 py-1 text-xs font-semibold text-green-600 dark:text-green-400">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-green-600 dark:bg-green-400"></span>
-                                    {{ __('Active') }}
-                                </span>
+                                {{ $user->created_at->toDayDateTimeString() }}
                             </dd>
                         </div>
 
@@ -86,110 +98,110 @@
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Last Updated') }}
                             </dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                {{ $tenant->updated_at->toDayDateTimeString() }}
+                                {{ $user->updated_at->toDayDateTimeString() }}
                             </dd>
                         </div>
                     </dl>
                 </div>
             </div>
 
-            <!-- Domains -->
+            <!-- Security Status -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 sm:p-8">
                     <div class="flex items-center gap-4 mb-6">
-                        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor"
-                                class="w-6 h-6 text-blue-600 dark:text-blue-400">
+                                class="w-6 h-6 text-green-600 dark:text-green-400">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3s-4.5 4.03-4.5 9 2.015 9 4.5 9z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3l1.5 1.5" />
+                                    d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                             </svg>
                         </div>
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {{ __('Domains') }}
+                                {{ __('Security Status') }}
                             </h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ __('All domains associated with this tenant') }}
+                                {{ __('Account verification and security settings') }}
                             </p>
                         </div>
                     </div>
 
-                    @if ($tenant->domains->count() > 0)
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            @foreach ($tenant->domains as $domain)
-                                <div
-                                    class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-4 shadow-sm hover:border-gray-400 dark:hover:border-gray-500">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor"
-                                                class="h-5 w-5 text-gray-400 dark:text-gray-500">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-                                            </svg>
-                                        </div>
-                                        <div class="ml-4">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $domain->domain }}
-                                            </p>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                {{ __('Added') }} {{ $domain->created_at->diffForHumans() }}
-                                            </p>
-                                        </div>
-                                    </div>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Email Verification -->
+                        <div
+                            class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-4 shadow-sm hover:border-gray-400 dark:hover:border-gray-500">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    @if($user->email_verified_at)
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor"
+                                            class="h-5 w-5 text-green-400 dark:text-green-500">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor"
+                                            class="h-5 w-5 text-yellow-400 dark:text-yellow-500">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                        </svg>
+                                    @endif
                                 </div>
-                            @endforeach
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ __('Email Verification') }}
+                                    </p>
+                                    @if($user->email_verified_at)
+                                        <p class="text-sm text-green-500 dark:text-green-400">
+                                            {{ __('Verified') }} {{ $user->email_verified_at->diffForHumans() }}
+                                        </p>
+                                    @else
+                                        <p class="text-sm text-yellow-500 dark:text-yellow-400">
+                                            {{ __('Not verified') }}
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                    @else
-                        <div class="text-center py-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor"
-                                class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ __('No domains') }}
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                {{ __('This tenant has no domains configured.') }}
-                            </p>
+
+                        <!-- Two-Factor Authentication -->
+                        <div
+                            class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-4 shadow-sm hover:border-gray-400 dark:hover:border-gray-500">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    @if($user->two_factor_secret)
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor"
+                                            class="h-5 w-5 text-blue-400 dark:text-blue-500">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12.75L11.25 15 15 9.75m-2.25-3L12 5.25 10.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor"
+                                            class="h-5 w-5 text-gray-400 dark:text-gray-500">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ __('Two-Factor Authentication') }}
+                                    </p>
+                                    @if($user->two_factor_secret)
+                                        <p class="text-sm text-blue-500 dark:text-blue-400">{{ __('Enabled') }}</p>
+                                    @else
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Disabled') }}</p>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                    @endif
+                    </div>
                 </div>
             </div>
-
-            @if (!empty($tenant->getAdditionalData()))
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 sm:p-8">
-                        <div class="flex items-center gap-4 mb-6">
-                            <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor"
-                                    class="w-6 h-6 text-green-600 dark:text-green-400">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                    {{ __('Additional Data') }}
-                                </h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ __('Custom configuration and metadata for this tenant') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div
-                            class="rounded-lg bg-gray-50 dark:bg-gray-900 p-4 border border-gray-200 dark:border-gray-700">
-                            <pre class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap overflow-x-auto">{{ json_encode($tenant->getAdditionalData(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                        </div>
-                    </div>
-                </div>
-            @endif
 
             <!-- Actions -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
@@ -227,17 +239,17 @@
                             </div>
                             <div class="ml-3 flex-1">
                                 <h4 class="text-sm font-medium text-red-800 dark:text-red-200">
-                                    {{ __('Delete this tenant') }}
+                                    {{ __('Delete this user') }}
                                 </h4>
                                 <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-                                    <p>{{ __('Once you delete a tenant, there is no going back. Please be certain.') }}
+                                    <p>{{ __('Once you delete a user, there is no going back. Please be certain.') }}
                                     </p>
                                 </div>
                                 <div class="mt-4">
                                     <button type="button" x-data=""
-                                        x-on:click.prevent="$dispatch('open-modal', {{ '\'confirm-tenant-deletion-' . $tenant->id . '\'' }})"
+                                        x-on:click.prevent="$dispatch('open-modal', {{ '\'confirm-user-deletion-' . $user->id . '\'' }})"
                                         class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
-                                        {{ __('Delete tenant') }}
+                                        {{ __('Delete user') }}
                                     </button>
                                 </div>
                             </div>
@@ -249,5 +261,5 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    @include('tenants.partials.delete-tenant-modal')
+    @include('tenants.users.partials.delete-user-modal')
 </x-app-layout>
