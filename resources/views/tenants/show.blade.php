@@ -157,8 +157,7 @@
                 </div>
             </div>
 
-            <!-- Additional Data -->
-            @if ($tenant->getAdditionalData())
+            @if (!empty($tenant->getAdditionalData()))
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 sm:p-8">
                         <div class="flex items-center gap-4 mb-6">
