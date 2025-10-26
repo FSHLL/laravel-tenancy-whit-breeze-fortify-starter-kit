@@ -43,7 +43,7 @@ class TenantUserController extends Controller
 
     public function show(Tenant $tenant, int $userId): View
     {
-        $user = User::withoutCentralApp()->findOrFail($userId);
+        $user = User::withoutCentralApp()->where('tenant_id', $tenant->id)->findOrFail($userId);
 
         return view('tenants.users.show', [
             'tenant' => $tenant,
@@ -53,7 +53,7 @@ class TenantUserController extends Controller
 
     public function edit(Tenant $tenant, int $userId): View
     {
-        $user = User::withoutCentralApp()->findOrFail($userId);
+        $user = User::withoutCentralApp()->where('tenant_id', $tenant->id)->findOrFail($userId);
 
         return view('tenants.users.edit', [
             'tenant' => $tenant,
@@ -63,7 +63,7 @@ class TenantUserController extends Controller
 
     public function update(UpdateUserRequest $request, Tenant $tenant, int $userId): RedirectResponse
     {
-        $user = User::withoutCentralApp()->findOrFail($userId);
+        $user = User::withoutCentralApp()->where('tenant_id', $tenant->id)->findOrFail($userId);
 
         $data = $request->only(['name', 'email']);
 
@@ -87,7 +87,7 @@ class TenantUserController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
-        $user = User::withoutCentralApp()->findOrFail($userId);
+        $user = User::withoutCentralApp()->where('tenant_id', $tenant->id)->findOrFail($userId);
 
         $user->delete();
 
