@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\TenantUser;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
@@ -51,10 +50,6 @@ class StoreTenantUserTest extends TestCase
 
         $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
         $this->assertTrue(Hash::check($userData['password'], $user->password));
-
-        Event::assertDispatched(Registered::class, function ($event) use ($user) {
-            return $event->user->id === $user->id;
-        });
 
         $response->assertRedirect(route('tenants.users.show', [$this->tenant, $user]));
     }
@@ -217,23 +212,6 @@ class StoreTenantUserTest extends TestCase
             ->post(route('tenants.users.store', 999), $userData);
 
         $response->assertStatus(404);
-    }
-
-    /** @test */
-    public function store_triggers_registered_event(): void
-    {
-        Event::fake();
-        $userData = [
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ];
-
-        $this->actingAs($this->authenticatedUser)
-            ->post(route($this->route, $this->tenant), $userData);
-
-        Event::assertDispatched(Registered::class);
     }
 
     /** @test */

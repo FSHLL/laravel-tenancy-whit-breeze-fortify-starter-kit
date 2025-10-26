@@ -6,7 +6,6 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -35,8 +34,6 @@ class TenantUserController extends Controller
             'password' => Hash::make($request->input('password')),
             'tenant_id' => $tenant->id,
         ]);
-
-        event(new Registered($user));
 
         return redirect()->route('tenants.users.show', [$tenant, $user]);
     }
