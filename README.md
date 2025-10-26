@@ -28,7 +28,8 @@ This starter kit is a fully configured Laravel application that combines multi-t
 - Single database with tenant isolation using scopes
 - Automatic identification by domain/subdomain
 - Shared database with tenant-aware models
-- Centralized tenant management
+- **Complete tenant management interface** with CRUD operations
+- **Advanced user management per tenant** with role-based access
 - Data isolation through global scopes and middleware
 
 ### 🔒 Authentication & Security
@@ -36,6 +37,8 @@ This starter kit is a fully configured Laravel application that combines multi-t
 - **Two-factor authentication (2FA)** with QR codes
 - Email verification
 - Password recovery
+- **Central user management** with dedicated commands
+- **Tenant-specific user isolation** and management
 - Brute force attack protection
 
 ### 🎨 User Interface
@@ -101,6 +104,49 @@ npm run dev
 npm run build
 ```
 
+## Management Interfaces
+
+### 🏢 Tenant Management
+This starter kit includes a complete tenant management interface accessible from the central application:
+
+- **Tenant CRUD Operations**: Create, read, update, and delete tenants
+- **Domain Management**: Associate multiple domains with each tenant
+- **User Management per Tenant**: Manage users belonging to specific tenants
+- **Tenant Status Monitoring**: View tenant activity and statistics
+- **Secure Tenant Operations**: Password confirmation for destructive actions
+
+#### Tenant Management Features:
+- **Tenant Creation**: Form-based tenant creation with custom data fields
+- **Domain Association**: Multiple domain support per tenant
+- **User Listing**: View all users associated with a specific tenant
+- **Tenant Editing**: Update tenant information and domain associations
+- **Secure Deletion**: Password-protected tenant deletion with confirmation
+
+### 👥 User Management
+Advanced user management system with both central and tenant-specific capabilities:
+
+#### Central User Management:
+- **Artisan Command**: `php artisan app:create-central-user` for creating central users
+- **Interactive Mode**: Step-by-step user creation with validation
+- **Batch Creation**: Create users via command-line options
+- **Validation**: Email uniqueness, password strength, and required fields validation
+
+#### Tenant User Management:
+- **User CRUD Operations**: Complete user lifecycle management per tenant
+- **Email Verification Status**: Visual indicators for verified/unverified emails
+- **2FA Status Display**: Clear indication of two-factor authentication status
+- **Tenant Association**: Automatic user assignment to specific tenants
+- **Password Management**: Secure password updates with hash verification
+- **User Profile Management**: Comprehensive user information editing
+
+#### User Management Features:
+- **User Creation**: Form-based user creation with validation
+- **User Editing**: Update user information, email, and passwords
+- **Email Verification**: Reset email verification when email changes
+- **Security**: Password confirmation for user deletion
+- **User Search**: Easy user lookup and management
+- **Responsive Design**: Mobile-friendly user management interface
+
 ### 7. Start the server
 ```bash
 php artisan serve
@@ -147,6 +193,21 @@ This starter kit uses a **single database** approach for multi-tenancy with the 
 
 ## Useful Commands
 
+### Tenant & User Management
+```bash
+# Create a central user interactively
+php artisan app:create-central-user
+
+# Create a central user with options
+php artisan app:create-central-user --name="Admin User" --email="admin@example.com" --password="SecurePass123"
+
+# Access tenant management interface
+# Navigate to /tenants in your central application
+
+# Access user management for a specific tenant
+# Navigate to /tenants/{tenant}/users in your central application
+```
+
 ### Tenancy
 ```bash
 # Run command for all tenants (single database)
@@ -181,26 +242,49 @@ php artisan test
 
 ```
 ├── app/
+│   ├── Http/Controllers/
+│   │   ├── TenantController.php        # Central tenant management
+│   │   └── TenantUserController.php    # Tenant-specific user management
+│   ├── Console/Commands/
+│   │   └── CreateCentralUserCommand.php # Central user creation command
 │   ├── Models/
-│   │   ├── Tenant.php          # Tenant model
-│   │   └── User.php            # User model with 2FA and tenant scopes
+│   │   ├── Tenant.php                  # Tenant model with domain relationships
+│   │   └── User.php                    # User model with 2FA and tenant scopes
+│   ├── Http/Requests/
+│   │   ├── Tenant/                     # Tenant validation requests
+│   │   └── User/                       # User validation requests
 │   ├── Providers/
 │   │   ├── FortifyServiceProvider.php
 │   │   └── TenancyServiceProvider.php
-│   ├── Scopes/                 # Global scopes for tenant isolation
-│   └── Actions/Fortify/        # Custom Fortify actions
+│   ├── Scopes/                         # Global scopes for tenant isolation
+│   └── Actions/Fortify/                # Custom Fortify actions
 ├── config/
-│   ├── tenancy.php            # Tenancy configuration (single database)
-│   └── fortify.php            # Fortify configuration
+│   ├── tenancy.php                     # Tenancy configuration (single database)
+│   └── fortify.php                     # Fortify configuration
 ├── database/
-│   └── migrations/            # Single database migrations with tenant_id columns
+│   └── migrations/                     # Single database migrations with tenant_id columns
 ├── routes/
-│   ├── web.php               # Central routes
-│   ├── shared.php            # Shared routes between tenant and web centrar app
-│   └── tenant.php            # Tenant-specific routes
-└── resources/views/
-    ├── auth/                 # Authentication views
-    └── profile/              # Profile views with 2FA
+│   ├── web.php                         # Central routes (includes tenant/user management)
+│   ├── shared.php                      # Shared routes between tenant and central app
+│   └── tenant.php                      # Tenant-specific routes
+├── resources/views/
+│   ├── tenants/                        # Tenant management views
+│   │   ├── index.blade.php             # Tenant listing
+│   │   ├── create.blade.php            # Tenant creation form
+│   │   ├── edit.blade.php              # Tenant editing form
+│   │   ├── show.blade.php              # Tenant details view
+│   │   └── users/                      # Tenant user management views
+│   │       ├── index.blade.php         # User listing per tenant
+│   │       ├── create.blade.php        # User creation form
+│   │       ├── edit.blade.php          # User editing form
+│   │       └── show.blade.php          # User details view
+│   ├── auth/                           # Authentication views
+│   └── profile/                        # Profile views with 2FA
+├── tests/Feature/
+│   ├── Http/Controllers/
+│   │   └── TenantUser/                 # Comprehensive TenantUserController tests
+│   └── Console/Commands/
+│       └── CreateCentralUserCommandTest.php # Central user command tests
 ```
 
 ## Development and Contributing
@@ -217,6 +301,64 @@ php artisan test
 - PSR-12 for PHP
 - Prettier for JavaScript/CSS
 - Run `vendor/bin/pint` before commits
+
+### Testing
+This project includes comprehensive test coverage for all major functionality:
+
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test suites
+php artisan test --testsuite=Feature
+
+# Run tenant user controller tests
+php artisan test tests/Feature/Http/Controllers/TenantUser/
+
+# Run command tests
+php artisan test tests/Feature/Console/Commands/
+
+# Run tests with coverage
+php artisan test --coverage
+```
+
+#### Test Coverage Includes:
+- **TenantUserController**: Complete CRUD operation testing
+- **CreateCentralUserCommand**: Interactive and option-based user creation
+- **Authentication Tests**: Login, registration, 2FA functionality
+- **Validation Tests**: Form validation and security checks
+- **Database Tests**: Data integrity and tenant isolation
+- **Feature Tests**: End-to-end functionality testing
+
+## Quick Start Guide
+
+### Initial Setup
+1. Follow the installation steps above
+2. Run migrations to create the database structure
+3. Access the application at `http://localhost:8000`
+
+### Creating Central Users
+Use the Artisan command for administrative users:
+```bash
+php artisan app:create-central-user
+```
+
+### Creating Your First Tenant
+1. Navigate to `/tenants` in your central application
+2. Click "Create Tenant" button
+3. Fill in the tenant ID and associated domains
+4. Optionally add custom tenant data in JSON format
+5. Save the tenant
+
+### Managing Tenant Users
+1. From the tenant list, click the "Manage Users" icon for any tenant
+2. Use the "Create User" button to add new users to the tenant
+3. Users will be automatically associated with the selected tenant
+4. Manage user details, passwords, and email verification status
+
+### Accessing Different Tenant Contexts
+- Central application: Access via your main domain
+- Tenant applications: Access via tenant-specific domains configured during tenant creation
 
 ## Additional Documentation
 
