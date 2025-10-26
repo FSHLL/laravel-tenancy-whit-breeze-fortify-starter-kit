@@ -17,7 +17,7 @@
                         @csrf
                         @method('PUT')
 
-                        @include('users.partials.user-form')
+                        @include('tenants.users.partials.user-form')
 
                         <div class="flex items-center justify-end">
                             <div class="flex space-x-4">

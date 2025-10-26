@@ -15,7 +15,7 @@ class TenantController extends Controller
     public function index(): View
     {
         return view('tenants.index', [
-            'tenants' => Tenant::paginate(),
+            'tenants' => Tenant::with('domains')->paginate(),
         ]);
     }
 

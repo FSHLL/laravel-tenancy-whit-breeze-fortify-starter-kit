@@ -25,7 +25,7 @@
                     <form method="POST" action="{{ route('tenants.users.store', $tenant) }}">
                         @csrf
 
-                        @include('users.partials.user-form')
+                        @include('tenants.users.partials.user-form')
 
                         <div class="flex items-center justify-end">
                             <div class="flex space-x-4">
