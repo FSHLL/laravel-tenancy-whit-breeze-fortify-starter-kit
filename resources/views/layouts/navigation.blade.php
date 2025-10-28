@@ -21,6 +21,10 @@
                             {{ __('Tenants') }}
                         </x-nav-link>
                     @endif
+
+                    <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
+                        {{ __('Roles') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -75,6 +79,14 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+                @if (!tenant())
+                    <x-responsive-nav-link :href="route('tenants.index')" :active="request()->routeIs('tenants.*')">
+                        {{ __('Tenants') }}
+                    </x-responsive-nav-link>
+                @endif
+            <x-responsive-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
+                {{ __('Roles') }}
             </x-responsive-nav-link>
         </div>
 
