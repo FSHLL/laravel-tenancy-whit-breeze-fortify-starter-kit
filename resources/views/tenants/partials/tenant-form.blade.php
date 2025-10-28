@@ -16,9 +16,16 @@
     <!-- Tenant ID -->
     <div>
         <x-input-label for="id" :value="__('Tenant ID')" />
-        <x-text-input id="id" name="id" type="text"
-            class="mt-1 block w-full {{ $isEdit ? 'bg-gray-100 dark:bg-gray-700' : '' }}" :value="old('id', $isEdit ? $tenant->id : '')"
-            {{ $isEdit ? 'readonly' : 'required' }} autofocus autocomplete="off" placeholder="unique-tenant-id" />
+        @if (!$isEdit)
+            <x-text-input id="id" name="id" type="text"
+                class="mt-1 block w-full {{ $isEdit ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
+                value="{{ old('id', $isEdit ? $tenant->id : '') }}" required autofocus autocomplete="off"
+                placeholder="unique-tenant-id" />
+        @else
+            <x-text-input id="id" name="id" type="text"
+                class="mt-1 block w-full bg-gray-100 dark:bg-gray-700"
+                value="{{ old('id', $isEdit ? $tenant->id : '') }}" readonly />
+        @endif
         <x-input-error class="mt-2" :messages="$errors->get('id')" />
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             @if ($isEdit)

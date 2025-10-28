@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Permissions;
 use App\Http\Requests\Tenant\StoreTenantRequest;
 use App\Http\Requests\Tenant\UpdateTenantRequest;
+use App\Models\Permission;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,11 +32,16 @@ class TenantController extends Controller
             ->merge(json_decode($request->input('data'), true) ?? [])
             ->toArray();
 
-        Tenant::create($tenantData)
-            ->domains()->createMany(
-                $request->collect('domains')
-                    ->map(fn ($domain) => ['domain' => $domain])
-            );
+        $tenant = Tenant::create($tenantData);
+
+        $tenant->domains()->createMany(
+            $request->collect('domains')
+                ->map(fn ($domain) => ['domain' => $domain])
+        );
+
+        foreach (Permissions::cases() as $permission) {
+            Permission::create(['name' => $permission->value, 'tenant_id' => $tenant->id]);
+        }
 
         return redirect()->intended(route('tenants.index'));
     }
