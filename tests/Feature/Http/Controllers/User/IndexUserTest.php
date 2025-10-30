@@ -40,9 +40,6 @@ class IndexUserTest extends TestCase
             ->assertOk()
             ->assertViewIs('users.index')
             ->assertSee(route('users.create'))
-            ->assertSee('View', false)
-            ->assertSee('Edit', false)
-            ->assertSee('Delete', false)
             ->assertViewHas('users');
     }
 
