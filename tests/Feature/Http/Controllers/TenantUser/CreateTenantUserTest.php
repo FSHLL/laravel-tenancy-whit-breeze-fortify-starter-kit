@@ -26,8 +26,7 @@ class CreateTenantUserTest extends TestCase
         $this->authenticatedUser = User::factory()->create();
     }
 
-    /** @test */
-    public function authenticated_user_can_view_create_user_form(): void
+    public function test_authenticated_user_can_view_create_user_form(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -37,8 +36,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertViewHas('tenant', $this->tenant);
     }
 
-    /** @test */
-    public function create_form_displays_correct_tenant_information(): void
+    public function test_create_form_displays_correct_tenant_information(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -48,8 +46,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee($this->tenant->id);
     }
 
-    /** @test */
-    public function create_form_has_required_fields(): void
+    public function test_create_form_has_required_fields(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -61,8 +58,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee('name="password_confirmation"', false);
     }
 
-    /** @test */
-    public function create_form_has_correct_action_url(): void
+    public function test_create_form_has_correct_action_url(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -71,8 +67,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee(route('tenants.users.store', $this->tenant));
     }
 
-    /** @test */
-    public function create_form_has_back_to_list_button(): void
+    public function test_create_form_has_back_to_list_button(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -82,8 +77,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee(__('Back to List'));
     }
 
-    /** @test */
-    public function create_form_displays_tenant_context_information(): void
+    public function test_create_form_displays_tenant_context_information(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -92,16 +86,14 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee(__('Creating user for tenant'));
     }
 
-    /** @test */
-    public function unauthenticated_user_cannot_access_create_form(): void
+    public function test_unauthenticated_user_cannot_access_create_form(): void
     {
         $response = $this->get(route($this->route, $this->tenant));
 
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function create_form_handles_non_existent_tenant(): void
+    public function test_create_form_handles_non_existent_tenant(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, 999));
@@ -109,8 +101,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function create_form_shows_correct_page_title(): void
+    public function test_create_form_shows_correct_page_title(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -119,8 +110,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee(__('Create User'));
     }
 
-    /** @test */
-    public function create_form_has_csrf_protection(): void
+    public function test_create_form_has_csrf_protection(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));
@@ -129,8 +119,7 @@ class CreateTenantUserTest extends TestCase
         $response->assertSee('name="_token"', false);
     }
 
-    /** @test */
-    public function create_form_has_cancel_button(): void
+    public function test_create_form_has_cancel_button(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, $this->tenant));

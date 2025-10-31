@@ -29,8 +29,7 @@ class EditTenantUserTest extends TestCase
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
     }
 
-    /** @test */
-    public function authenticated_user_can_view_edit_form(): void
+    public function test_authenticated_user_can_view_edit_form(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -41,8 +40,7 @@ class EditTenantUserTest extends TestCase
         $response->assertViewHas('user', $this->tenantUser);
     }
 
-    /** @test */
-    public function edit_form_displays_with_existing_user_data(): void
+    public function test_edit_form_displays_with_existing_user_data(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -52,8 +50,7 @@ class EditTenantUserTest extends TestCase
         $response->assertSee('value="'.$this->tenantUser->email.'"', false);
     }
 
-    /** @test */
-    public function edit_form_displays_required_form_fields(): void
+    public function test_edit_form_displays_required_form_fields(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -65,8 +62,7 @@ class EditTenantUserTest extends TestCase
         $response->assertSee('name="password_confirmation"', false);
     }
 
-    /** @test */
-    public function edit_form_displays_cancel_button(): void
+    public function test_edit_form_displays_cancel_button(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -76,8 +72,7 @@ class EditTenantUserTest extends TestCase
         $response->assertSee(route('tenants.users.show', [$this->tenant, $this->tenantUser]));
     }
 
-    /** @test */
-    public function edit_form_displays_update_button(): void
+    public function test_edit_form_displays_update_button(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -87,8 +82,7 @@ class EditTenantUserTest extends TestCase
         $response->assertSee('type="submit"', false);
     }
 
-    /** @test */
-    public function edit_form_includes_method_spoofing(): void
+    public function test_edit_form_includes_method_spoofing(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -98,16 +92,14 @@ class EditTenantUserTest extends TestCase
         $response->assertSee('value="PUT"', false);
     }
 
-    /** @test */
-    public function unauthenticated_user_cannot_view_edit_form(): void
+    public function test_unauthenticated_user_cannot_view_edit_form(): void
     {
         $response = $this->get(route($this->route, [$this->tenant, $this->tenantUser]));
 
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function edit_handles_non_existent_tenant(): void
+    public function test_edit_handles_non_existent_tenant(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [999, $this->tenantUser]));
@@ -115,8 +107,7 @@ class EditTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function edit_handles_non_existent_user(): void
+    public function test_edit_handles_non_existent_user(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, 999]));
@@ -124,8 +115,7 @@ class EditTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function edit_form_includes_old_input_values(): void
+    public function test_edit_form_includes_old_input_values(): void
     {
         $oldName = $this->faker->name;
         $oldEmail = $this->faker->email;
@@ -139,8 +129,7 @@ class EditTenantUserTest extends TestCase
         $response->assertSee('value="'.$oldEmail.'"', false);
     }
 
-    /** @test */
-    public function edit_form_passes_edit_mode_to_partial(): void
+    public function test_edit_form_passes_edit_mode_to_partial(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));

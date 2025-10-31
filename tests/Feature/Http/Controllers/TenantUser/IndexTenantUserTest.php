@@ -26,8 +26,7 @@ class IndexTenantUserTest extends TestCase
         $this->authenticatedUser = User::factory()->create();
     }
 
-    /** @test */
-    public function authenticated_user_can_view_tenant_users_index(): void
+    public function test_authenticated_user_can_view_tenant_users_index(): void
     {
         $tenantUsers = User::factory(3)->create(['tenant_id' => $this->tenant->id]);
 
@@ -45,8 +44,7 @@ class IndexTenantUserTest extends TestCase
         }
     }
 
-    /** @test */
-    public function index_only_shows_users_from_specific_tenant(): void
+    public function test_index_only_shows_users_from_specific_tenant(): void
     {
         $otherTenant = Tenant::factory()->create();
         $tenantUsers = User::factory(2)->create(['tenant_id' => $this->tenant->id]);
@@ -71,8 +69,7 @@ class IndexTenantUserTest extends TestCase
         }
     }
 
-    /** @test */
-    public function index_view_has_pagination(): void
+    public function test_index_view_has_pagination(): void
     {
         User::factory(20)->create(['tenant_id' => $this->tenant->id]);
 
@@ -84,16 +81,14 @@ class IndexTenantUserTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $users);
     }
 
-    /** @test */
-    public function unauthenticated_user_cannot_access_tenant_users_index(): void
+    public function test_unauthenticated_user_cannot_access_tenant_users_index(): void
     {
         $response = $this->get(route($this->route, $this->tenant));
 
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function index_handles_non_existent_tenant(): void
+    public function test_index_handles_non_existent_tenant(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, 999));

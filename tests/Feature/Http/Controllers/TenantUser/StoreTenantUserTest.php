@@ -28,8 +28,7 @@ class StoreTenantUserTest extends TestCase
         $this->authenticatedUser = User::factory()->create();
     }
 
-    /** @test */
-    public function authenticated_user_can_create_new_tenant_user(): void
+    public function test_authenticated_user_can_create_new_tenant_user(): void
     {
         Event::fake();
         $userData = [
@@ -54,8 +53,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertRedirect(route('tenants.users.show', [$this->tenant, $user]));
     }
 
-    /** @test */
-    public function store_validates_required_fields(): void
+    public function test_store_validates_required_fields(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->post(route($this->route, $this->tenant), []);
@@ -63,8 +61,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertSessionHasErrors(['name', 'email', 'password']);
     }
 
-    /** @test */
-    public function store_validates_email_format(): void
+    public function test_store_validates_email_format(): void
     {
         $userData = [
             'name' => $this->faker->name,
@@ -79,8 +76,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertSessionHasErrors(['email']);
     }
 
-    /** @test */
-    public function store_validates_unique_email(): void
+    public function test_store_validates_unique_email(): void
     {
         $existingUser = User::factory()->create();
         $userData = [
@@ -96,8 +92,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertSessionHasErrors(['email']);
     }
 
-    /** @test */
-    public function store_validates_password_confirmation(): void
+    public function test_store_validates_password_confirmation(): void
     {
         $userData = [
             'name' => $this->faker->name,
@@ -112,8 +107,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertSessionHasErrors(['password']);
     }
 
-    /** @test */
-    public function store_validates_password_minimum_length(): void
+    public function test_store_validates_password_minimum_length(): void
     {
         $userData = [
             'name' => $this->faker->name,
@@ -128,8 +122,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertSessionHasErrors(['password']);
     }
 
-    /** @test */
-    public function store_validates_name_maximum_length(): void
+    public function test_store_validates_name_maximum_length(): void
     {
         $userData = [
             'name' => str_repeat('a', 256), // Over 255 characters
@@ -144,8 +137,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertSessionHasErrors(['name']);
     }
 
-    /** @test */
-    public function store_assigns_correct_tenant_id(): void
+    public function test_store_assigns_correct_tenant_id(): void
     {
         $userData = [
             'name' => $this->faker->name,
@@ -161,8 +153,7 @@ class StoreTenantUserTest extends TestCase
         $this->assertEquals($this->tenant->id, $user->tenant_id);
     }
 
-    /** @test */
-    public function store_hashes_password(): void
+    public function test_store_hashes_password(): void
     {
         $password = 'password123';
         $userData = [
@@ -180,8 +171,7 @@ class StoreTenantUserTest extends TestCase
         $this->assertNotEquals($password, $user->password);
     }
 
-    /** @test */
-    public function unauthenticated_user_cannot_store_user(): void
+    public function test_unauthenticated_user_cannot_store_user(): void
     {
         $userData = [
             'name' => $this->faker->name,
@@ -198,8 +188,7 @@ class StoreTenantUserTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function store_handles_non_existent_tenant(): void
+    public function test_store_handles_non_existent_tenant(): void
     {
         $userData = [
             'name' => $this->faker->name,
@@ -214,8 +203,7 @@ class StoreTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function store_redirects_to_user_show_page(): void
+    public function test_store_redirects_to_user_show_page(): void
     {
         $userData = [
             'name' => $this->faker->name,

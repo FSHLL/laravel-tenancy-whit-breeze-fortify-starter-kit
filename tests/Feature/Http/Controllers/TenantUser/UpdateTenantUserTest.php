@@ -30,8 +30,7 @@ class UpdateTenantUserTest extends TestCase
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
     }
 
-    /** @test */
-    public function authenticated_user_can_update_tenant_user(): void
+    public function test_authenticated_user_can_update_tenant_user(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -50,8 +49,7 @@ class UpdateTenantUserTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function update_with_password_changes_user_password(): void
+    public function test_update_with_password_changes_user_password(): void
     {
         $newPassword = 'NewSecurePassword123!';
         $updateData = [
@@ -69,8 +67,7 @@ class UpdateTenantUserTest extends TestCase
         $this->assertTrue(Hash::check($newPassword, $this->tenantUser->password));
     }
 
-    /** @test */
-    public function update_without_password_keeps_existing_password(): void
+    public function test_update_without_password_keeps_existing_password(): void
     {
         $originalPassword = $this->tenantUser->password;
         $updateData = [
@@ -86,8 +83,7 @@ class UpdateTenantUserTest extends TestCase
         $this->assertEquals($originalPassword, $this->tenantUser->password);
     }
 
-    /** @test */
-    public function update_fails_with_invalid_name(): void
+    public function test_update_fails_with_invalid_name(): void
     {
         $updateData = [
             'name' => '', // Invalid: empty name
@@ -101,8 +97,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_fails_with_invalid_email(): void
+    public function test_update_fails_with_invalid_email(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -116,8 +111,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_fails_with_duplicate_email(): void
+    public function test_update_fails_with_duplicate_email(): void
     {
         $existingUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
         $updateData = [
@@ -132,8 +126,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_allows_keeping_same_email(): void
+    public function test_update_allows_keeping_same_email(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -151,8 +144,7 @@ class UpdateTenantUserTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function update_fails_with_short_password(): void
+    public function test_update_fails_with_short_password(): void
     {
         $shortPassword = '123'; // Too short
         $updateData = [
@@ -169,8 +161,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_fails_with_mismatched_password_confirmation(): void
+    public function test_update_fails_with_mismatched_password_confirmation(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -186,8 +177,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_resets_email_verification_when_email_changes(): void
+    public function test_update_resets_email_verification_when_email_changes(): void
     {
         $this->tenantUser->update(['email_verified_at' => now()]);
         $updateData = [
@@ -203,8 +193,7 @@ class UpdateTenantUserTest extends TestCase
         $this->assertNull($this->tenantUser->email_verified_at);
     }
 
-    /** @test */
-    public function update_preserves_email_verification_when_email_unchanged(): void
+    public function test_update_preserves_email_verification_when_email_unchanged(): void
     {
         $verificationTime = now();
         $this->tenantUser->update(['email_verified_at' => $verificationTime]);
@@ -221,8 +210,7 @@ class UpdateTenantUserTest extends TestCase
         $this->assertEquals($verificationTime->timestamp, $this->tenantUser->email_verified_at->timestamp);
     }
 
-    /** @test */
-    public function update_displays_success_message(): void
+    public function test_update_displays_success_message(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -236,8 +224,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect(route('tenants.users.show', [$this->tenant, $this->tenantUser]));
     }
 
-    /** @test */
-    public function unauthenticated_user_cannot_update_user(): void
+    public function test_unauthenticated_user_cannot_update_user(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -249,8 +236,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function update_handles_non_existent_tenant(): void
+    public function test_update_handles_non_existent_tenant(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -264,8 +250,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function update_handles_non_existent_user(): void
+    public function test_update_handles_non_existent_user(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -279,8 +264,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function update_validates_name_length(): void
+    public function test_update_validates_name_length(): void
     {
         $updateData = [
             'name' => str_repeat('a', 256), // Too long
@@ -294,8 +278,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_validates_email_length(): void
+    public function test_update_validates_email_length(): void
     {
         $longEmail = str_repeat('a', 250).'@example.com'; // Too long
         $updateData = [
@@ -310,8 +293,7 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
-    public function update_preserves_tenant_id(): void
+    public function test_update_preserves_tenant_id(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -327,8 +309,7 @@ class UpdateTenantUserTest extends TestCase
         $this->assertEquals($this->tenant->id, $this->tenantUser->tenant_id);
     }
 
-    /** @test */
-    public function update_handles_mass_assignment_protection(): void
+    public function test_update_handles_mass_assignment_protection(): void
     {
         $updateData = [
             'name' => $this->faker->name,
@@ -346,8 +327,7 @@ class UpdateTenantUserTest extends TestCase
         $this->assertNotEquals($updateData['created_at']->timestamp, $this->tenantUser->created_at->timestamp);
     }
 
-    /** @test */
-    public function update_with_empty_password_fields_is_ignored(): void
+    public function test_update_with_empty_password_fields_is_ignored(): void
     {
         $originalPassword = $this->tenantUser->password;
         $updateData = [

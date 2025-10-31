@@ -21,8 +21,7 @@ class CreateTenantTest extends TestCase
         $this->actingAs($user);
     }
 
-    /** @test */
-    public function it_can_display_create_tenant_page(): void
+    public function test_it_can_display_create_tenant_page(): void
     {
         $response = $this->get(route($this->route));
 
@@ -30,8 +29,7 @@ class CreateTenantTest extends TestCase
         $response->assertViewIs('tenants.create');
     }
 
-    /** @test */
-    public function it_displays_correct_page_title(): void
+    public function test_it_displays_correct_page_title(): void
     {
         $response = $this->get(route($this->route));
 
@@ -39,8 +37,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('Create Tenant');
     }
 
-    /** @test */
-    public function it_displays_back_to_list_button(): void
+    public function test_it_displays_back_to_list_button(): void
     {
         $response = $this->get(route($this->route));
 
@@ -49,8 +46,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee(route('tenants.index'));
     }
 
-    /** @test */
-    public function it_includes_tenant_form_partial(): void
+    public function test_it_includes_tenant_form_partial(): void
     {
         $response = $this->get(route($this->route));
 
@@ -60,8 +56,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('Additional Data (JSON) - Optional');
     }
 
-    /** @test */
-    public function it_displays_tenant_id_field_with_correct_attributes(): void
+    public function test_it_displays_tenant_id_field_with_correct_attributes(): void
     {
         $response = $this->get(route($this->route));
 
@@ -72,8 +67,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('A unique identifier for this tenant');
     }
 
-    /** @test */
-    public function it_displays_domains_field_with_alpine_js(): void
+    public function test_it_displays_domains_field_with_alpine_js(): void
     {
         $response = $this->get(route($this->route));
 
@@ -85,8 +79,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('placeholder="example.com"', false);
     }
 
-    /** @test */
-    public function it_displays_additional_data_textarea(): void
+    public function test_it_displays_additional_data_textarea(): void
     {
         $response = $this->get(route($this->route));
 
@@ -97,8 +90,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('Optional custom data in JSON format');
     }
 
-    /** @test */
-    public function it_displays_form_with_correct_action_and_method(): void
+    public function test_it_displays_form_with_correct_action_and_method(): void
     {
         $response = $this->get(route($this->route));
 
@@ -108,8 +100,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('name="_token"', false); // CSRF token
     }
 
-    /** @test */
-    public function it_displays_action_buttons(): void
+    public function test_it_displays_action_buttons(): void
     {
         $response = $this->get(route($this->route));
 
@@ -119,8 +110,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee(route('tenants.index')); // Cancel button link
     }
 
-    /** @test */
-    public function it_displays_form_in_creation_mode(): void
+    public function test_it_displays_form_in_creation_mode(): void
     {
         $response = $this->get(route($this->route));
 
@@ -133,8 +123,7 @@ class CreateTenantTest extends TestCase
         $response->assertDontSee('Update Tenant');
     }
 
-    /** @test */
-    public function it_displays_help_text_for_fields(): void
+    public function test_it_displays_help_text_for_fields(): void
     {
         $response = $this->get(route($this->route));
 
@@ -143,8 +132,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('Optional custom data in JSON format');
     }
 
-    /** @test */
-    public function it_displays_remove_domain_buttons(): void
+    public function test_it_displays_remove_domain_buttons(): void
     {
         $response = $this->get(route($this->route));
 
@@ -153,8 +141,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('x-show="domains.length > 1"', false);
     }
 
-    /** @test */
-    public function it_displays_add_domain_button(): void
+    public function test_it_displays_add_domain_button(): void
     {
         $response = $this->get(route($this->route));
 
@@ -163,8 +150,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('Add Domain');
     }
 
-    /** @test */
-    public function it_requires_authentication(): void
+    public function test_it_requires_authentication(): void
     {
         $this->post(route('logout'));
 
@@ -173,8 +159,7 @@ class CreateTenantTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function it_displays_proper_form_styling(): void
+    public function test_it_displays_proper_form_styling(): void
     {
         $response = $this->get(route($this->route));
 
@@ -184,8 +169,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('shadow-sm sm:rounded-lg', false); // Card styling
     }
 
-    /** @test */
-    public function it_uses_app_layout(): void
+    public function test_it_uses_app_layout(): void
     {
         $response = $this->get(route($this->route));
 
@@ -195,8 +179,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('py-12', false);
     }
 
-    /** @test */
-    public function it_displays_svg_icons(): void
+    public function test_it_displays_svg_icons(): void
     {
         $response = $this->get(route($this->route));
 
@@ -206,8 +189,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('stroke="currentColor"', false);
     }
 
-    /** @test */
-    public function it_shows_default_empty_domain_field(): void
+    public function test_it_shows_default_empty_domain_field(): void
     {
         $response = $this->get(route($this->route));
 
@@ -215,8 +197,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('domains: [&quot;&quot;]', false);
     }
 
-    /** @test */
-    public function it_displays_proper_input_labels(): void
+    public function test_it_displays_proper_input_labels(): void
     {
         $response = $this->get(route($this->route));
 
@@ -226,8 +207,7 @@ class CreateTenantTest extends TestCase
         $response->assertSee('Additional Data (JSON) - Optional');
     }
 
-    /** @test */
-    public function it_has_proper_form_structure(): void
+    public function test_it_has_proper_form_structure(): void
     {
         $response = $this->get(route($this->route));
 

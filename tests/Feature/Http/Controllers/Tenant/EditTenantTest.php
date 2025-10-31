@@ -22,8 +22,7 @@ class EditTenantTest extends TestCase
         $this->actingAs($user);
     }
 
-    /** @test */
-    public function it_can_display_edit_tenant_page(): void
+    public function test_it_can_display_edit_tenant_page(): void
     {
         $tenant = Tenant::create(['id' => 'test-tenant']);
 
@@ -34,8 +33,7 @@ class EditTenantTest extends TestCase
         $response->assertViewHas('tenant');
     }
 
-    /** @test */
-    public function it_displays_correct_page_title_with_tenant_id(): void
+    public function test_it_displays_correct_page_title_with_tenant_id(): void
     {
         $tenant = Tenant::create(['id' => 'edit-title-tenant']);
 
@@ -45,8 +43,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('Edit Tenant edit-title-tenant');
     }
 
-    /** @test */
-    public function it_displays_back_to_tenant_button(): void
+    public function test_it_displays_back_to_tenant_button(): void
     {
         $tenant = Tenant::create(['id' => 'back-button-tenant']);
 
@@ -57,8 +54,7 @@ class EditTenantTest extends TestCase
         $response->assertSee(route('tenants.show', $tenant));
     }
 
-    /** @test */
-    public function it_includes_tenant_form_partial_in_edit_mode(): void
+    public function test_it_includes_tenant_form_partial_in_edit_mode(): void
     {
         $tenant = Tenant::create(['id' => 'form-partial-tenant']);
 
@@ -73,8 +69,7 @@ class EditTenantTest extends TestCase
         $response->assertDontSee('Create Tenant');
     }
 
-    /** @test */
-    public function it_displays_tenant_id_field_as_readonly(): void
+    public function test_it_displays_tenant_id_field_as_readonly(): void
     {
         $tenant = Tenant::create(['id' => 'readonly-tenant']);
 
@@ -86,8 +81,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('Tenant ID cannot be changed after creation');
     }
 
-    /** @test */
-    public function it_displays_existing_domains_in_form(): void
+    public function test_it_displays_existing_domains_in_form(): void
     {
         $tenant = Tenant::create(['id' => 'domains-tenant']);
         $tenant->domains()->createMany([
@@ -105,8 +99,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('subdomain.test.org', false);
     }
 
-    /** @test */
-    public function it_displays_existing_additional_data(): void
+    public function test_it_displays_existing_additional_data(): void
     {
         $tenant = Tenant::create([
             'id' => 'data-tenant',
@@ -125,8 +118,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('nested', false);
     }
 
-    /** @test */
-    public function it_displays_form_with_correct_action_and_method(): void
+    public function test_it_displays_form_with_correct_action_and_method(): void
     {
         $tenant = Tenant::create(['id' => 'action-method-tenant']);
 
@@ -139,8 +131,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('name="_token"', false); // CSRF token
     }
 
-    /** @test */
-    public function it_displays_update_action_buttons(): void
+    public function test_it_displays_update_action_buttons(): void
     {
         $tenant = Tenant::create(['id' => 'action-buttons-tenant']);
 
@@ -152,8 +143,7 @@ class EditTenantTest extends TestCase
         $response->assertSee(route('tenants.index')); // Cancel button link
     }
 
-    /** @test */
-    public function it_displays_form_in_edit_mode(): void
+    public function test_it_displays_form_in_edit_mode(): void
     {
         $tenant = Tenant::create(['id' => 'edit-mode-tenant']);
 
@@ -168,8 +158,7 @@ class EditTenantTest extends TestCase
         $response->assertDontSee('A unique identifier for this tenant');
     }
 
-    /** @test */
-    public function it_displays_tenant_without_domains(): void
+    public function test_it_displays_tenant_without_domains(): void
     {
         $tenant = Tenant::create(['id' => 'no-domains-tenant']);
 
@@ -179,8 +168,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('domains: []', false);
     }
 
-    /** @test */
-    public function it_displays_tenant_without_additional_data(): void
+    public function test_it_displays_tenant_without_additional_data(): void
     {
         $tenant = Tenant::create(['id' => 'no-data-tenant']);
 
@@ -191,8 +179,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('name="data"', false);
     }
 
-    /** @test */
-    public function it_displays_alpine_js_functionality_for_domains(): void
+    public function test_it_displays_alpine_js_functionality_for_domains(): void
     {
         $tenant = Tenant::create(['id' => 'alpine-tenant']);
 
@@ -207,16 +194,14 @@ class EditTenantTest extends TestCase
         $response->assertSee('Add Domain');
     }
 
-    /** @test */
-    public function it_returns_404_for_non_existent_tenant(): void
+    public function test_it_returns_404_for_non_existent_tenant(): void
     {
         $response = $this->get(route($this->route, 'non-existent-tenant'));
 
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function it_requires_authentication(): void
+    public function test_it_requires_authentication(): void
     {
         $tenant = Tenant::create(['id' => 'auth-test-tenant']);
 
@@ -229,8 +214,7 @@ class EditTenantTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function it_displays_proper_form_styling(): void
+    public function test_it_displays_proper_form_styling(): void
     {
         $tenant = Tenant::create(['id' => 'styling-tenant']);
 
@@ -243,8 +227,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('shadow-sm sm:rounded-lg', false); // Card styling
     }
 
-    /** @test */
-    public function it_uses_app_layout(): void
+    public function test_it_uses_app_layout(): void
     {
         $tenant = Tenant::create(['id' => 'layout-tenant']);
 
@@ -255,8 +238,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('py-12', false);
     }
 
-    /** @test */
-    public function it_passes_tenant_to_view(): void
+    public function test_it_passes_tenant_to_view(): void
     {
         $tenant = Tenant::create(['id' => 'view-data-tenant']);
 
@@ -269,8 +251,7 @@ class EditTenantTest extends TestCase
         $this->assertInstanceOf(Tenant::class, $viewTenant);
     }
 
-    /** @test */
-    public function it_loads_tenant_domains_for_form(): void
+    public function test_it_loads_tenant_domains_for_form(): void
     {
         $tenant = Tenant::create(['id' => 'loaded-domains-tenant']);
         $tenant->domains()->createMany([
@@ -287,8 +268,7 @@ class EditTenantTest extends TestCase
         $this->assertCount(2, $viewTenant->domains);
     }
 
-    /** @test */
-    public function it_displays_svg_icons_in_form(): void
+    public function test_it_displays_svg_icons_in_form(): void
     {
         $tenant = Tenant::create(['id' => 'icons-tenant']);
 
@@ -301,8 +281,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('Back to Tenant', false); // Back button with icon
     }
 
-    /** @test */
-    public function it_displays_help_text_for_edit_mode(): void
+    public function test_it_displays_help_text_for_edit_mode(): void
     {
         $tenant = Tenant::create(['id' => 'help-text-tenant']);
 
@@ -314,8 +293,7 @@ class EditTenantTest extends TestCase
         $response->assertDontSee('Use lowercase letters, numbers, and hyphens only');
     }
 
-    /** @test */
-    public function it_preserves_old_input_on_validation_errors(): void
+    public function test_it_preserves_old_input_on_validation_errors(): void
     {
         $tenant = Tenant::create(['id' => 'old-input-tenant']);
         $tenant->domains()->create(['domain' => 'original.example.com']);
@@ -333,8 +311,7 @@ class EditTenantTest extends TestCase
         $response->assertSee('new2.example.com', false);
     }
 
-    /** @test */
-    public function it_displays_complex_additional_data_formatted(): void
+    public function test_it_displays_complex_additional_data_formatted(): void
     {
         $tenant = Tenant::create([
             'id' => 'complex-data-tenant',
