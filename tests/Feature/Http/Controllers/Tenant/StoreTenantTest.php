@@ -21,8 +21,7 @@ class StoreTenantTest extends TestCase
         $this->actingAs($user);
     }
 
-    /** @test */
-    public function it_can_create_a_tenant_with_valid_data(): void
+    public function test_it_can_create_a_tenant_with_valid_data(): void
     {
         $tenantData = [
             'id' => 'test-tenant',
@@ -36,8 +35,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseHas('domains', ['domain' => 'test.example.com']);
     }
 
-    /** @test */
-    public function it_can_create_tenant_with_multiple_domains(): void
+    public function test_it_can_create_tenant_with_multiple_domains(): void
     {
         $tenantData = [
             'id' => 'multi-domain-tenant',
@@ -57,8 +55,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseHas('domains', ['domain' => 'subdomain.test.org']);
     }
 
-    /** @test */
-    public function it_can_create_tenant_with_additional_data(): void
+    public function test_it_can_create_tenant_with_additional_data(): void
     {
         $additionalData = [
             'setting1' => 'value1',
@@ -83,8 +80,7 @@ class StoreTenantTest extends TestCase
         $this->assertEquals(['nested' => true], $tenant->config);
     }
 
-    /** @test */
-    public function it_requires_tenant_id(): void
+    public function test_it_requires_tenant_id(): void
     {
         $tenantData = [
             'domains' => ['test.example.com'],
@@ -96,8 +92,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('tenants', ['id' => null]);
     }
 
-    /** @test */
-    public function it_requires_at_least_one_domain(): void
+    public function test_it_requires_at_least_one_domain(): void
     {
         $tenantData = [
             'id' => 'no-domains-tenant',
@@ -110,8 +105,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('tenants', ['id' => 'no-domains-tenant']);
     }
 
-    /** @test */
-    public function it_validates_tenant_id_uniqueness(): void
+    public function test_it_validates_tenant_id_uniqueness(): void
     {
         Tenant::create(['id' => 'existing-tenant']);
 
@@ -126,8 +120,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('domains', ['domain' => 'test.example.com']);
     }
 
-    /** @test */
-    public function it_validates_domain_uniqueness(): void
+    public function test_it_validates_domain_uniqueness(): void
     {
         $existingTenant = Tenant::create(['id' => 'existing-tenant']);
         $existingTenant->domains()->create(['domain' => 'existing.example.com']);
@@ -143,8 +136,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('tenants', ['id' => 'new-tenant']);
     }
 
-    /** @test */
-    public function it_validates_json_format_for_additional_data(): void
+    public function test_it_validates_json_format_for_additional_data(): void
     {
         $tenantData = [
             'id' => 'invalid-json-tenant',
@@ -158,8 +150,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('tenants', ['id' => 'invalid-json-tenant']);
     }
 
-    /** @test */
-    public function it_can_create_tenant_without_additional_data(): void
+    public function test_it_can_create_tenant_without_additional_data(): void
     {
         $tenantData = [
             'id' => 'no-data-tenant',
@@ -173,8 +164,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseHas('domains', ['domain' => 'nodata.example.com']);
     }
 
-    /** @test */
-    public function it_validates_domain_format(): void
+    public function test_it_validates_domain_format(): void
     {
         $tenantData = [
             'id' => 'format-test-tenant',
@@ -191,8 +181,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('tenants', ['id' => 'format-test-tenant']);
     }
 
-    /** @test */
-    public function it_redirects_to_tenants_index_after_successful_creation(): void
+    public function test_it_redirects_to_tenants_index_after_successful_creation(): void
     {
         $tenantData = [
             'id' => 'redirect-test-tenant',
@@ -204,8 +193,7 @@ class StoreTenantTest extends TestCase
         $response->assertRedirect(route('tenants.index'));
     }
 
-    /** @test */
-    public function it_requires_authentication(): void
+    public function test_it_requires_authentication(): void
     {
         $this->post(route('logout'));
 
@@ -220,8 +208,7 @@ class StoreTenantTest extends TestCase
         $this->assertDatabaseMissing('tenants', ['id' => 'auth-test-tenant']);
     }
 
-    /** @test */
-    public function it_stores_complex_additional_data_correctly(): void
+    public function test_it_stores_complex_additional_data_correctly(): void
     {
         $complexData = [
             'database' => [
@@ -257,8 +244,7 @@ class StoreTenantTest extends TestCase
         $this->assertNull($tenant->null_setting);
     }
 
-    /** @test */
-    public function it_handles_empty_additional_data(): void
+    public function test_it_handles_empty_additional_data(): void
     {
         $tenantData = [
             'id' => 'empty-data-tenant',

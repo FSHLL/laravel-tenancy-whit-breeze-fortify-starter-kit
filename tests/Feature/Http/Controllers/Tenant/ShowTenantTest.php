@@ -21,8 +21,7 @@ class ShowTenantTest extends TestCase
         $this->actingAs($user);
     }
 
-    /** @test */
-    public function it_can_display_tenant_details_page(): void
+    public function test_it_can_display_tenant_details_page(): void
     {
         $tenant = Tenant::create(['id' => 'test-tenant']);
 
@@ -33,8 +32,7 @@ class ShowTenantTest extends TestCase
         $response->assertViewHas('tenant');
     }
 
-    /** @test */
-    public function it_displays_basic_tenant_information(): void
+    public function test_it_displays_basic_tenant_information(): void
     {
         $tenant = Tenant::create(['id' => 'basic-info-tenant']);
 
@@ -49,8 +47,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee($tenant->updated_at->toDayDateTimeString());
     }
 
-    /** @test */
-    public function it_displays_tenant_with_domains(): void
+    public function test_it_displays_tenant_with_domains(): void
     {
         $tenant = Tenant::create(['id' => 'tenant-with-domains']);
         $tenant->domains()->createMany([
@@ -70,8 +67,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee('Added');
     }
 
-    /** @test */
-    public function it_displays_empty_domains_state(): void
+    public function test_it_displays_empty_domains_state(): void
     {
         $tenant = Tenant::create(['id' => 'tenant-no-domains']);
 
@@ -83,8 +79,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee('This tenant has no domains configured');
     }
 
-    /** @test */
-    public function it_displays_additional_data_when_present(): void
+    public function test_it_displays_additional_data_when_present(): void
     {
         $tenant = Tenant::create([
             'id' => 'tenant-with-data',
@@ -104,8 +99,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee('value2');
     }
 
-    /** @test */
-    public function it_does_not_display_additional_data_section_when_empty(): void
+    public function test_it_does_not_display_additional_data_section_when_empty(): void
     {
         $tenant = Tenant::create(['id' => 'tenant-no-data']);
 
@@ -116,8 +110,7 @@ class ShowTenantTest extends TestCase
         $response->assertDontSee('Custom configuration and metadata');
     }
 
-    /** @test */
-    public function it_displays_action_buttons(): void
+    public function test_it_displays_action_buttons(): void
     {
         $tenant = Tenant::create(['id' => 'action-buttons-tenant']);
 
@@ -130,8 +123,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee(route('tenants.edit', $tenant));
     }
 
-    /** @test */
-    public function it_displays_danger_zone_section(): void
+    public function test_it_displays_danger_zone_section(): void
     {
         $tenant = Tenant::create(['id' => 'danger-zone-tenant']);
 
@@ -145,8 +137,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee('Delete tenant');
     }
 
-    /** @test */
-    public function it_shows_delete_confirmation_modal(): void
+    public function test_it_shows_delete_confirmation_modal(): void
     {
         $tenant = Tenant::create(['id' => 'modal-test-tenant']);
 
@@ -156,16 +147,14 @@ class ShowTenantTest extends TestCase
         $response->assertSee('confirm-tenant-deletion-'.$tenant->id);
     }
 
-    /** @test */
-    public function it_returns_404_for_non_existent_tenant(): void
+    public function test_it_returns_404_for_non_existent_tenant(): void
     {
         $response = $this->get(route($this->route, 'non-existent-tenant'));
 
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function it_requires_authentication(): void
+    public function test_it_requires_authentication(): void
     {
         $tenant = Tenant::create(['id' => 'auth-test-tenant']);
 
@@ -176,8 +165,7 @@ class ShowTenantTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function it_displays_correct_page_structure(): void
+    public function test_it_displays_correct_page_structure(): void
     {
         $tenant = Tenant::create(['id' => 'structure-test-tenant']);
 
@@ -189,8 +177,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee('Danger Zone');
     }
 
-    /** @test */
-    public function it_displays_tenant_with_complex_additional_data(): void
+    public function test_it_displays_tenant_with_complex_additional_data(): void
     {
         $tenant = Tenant::create([
             'id' => 'complex-data-tenant',
@@ -217,8 +204,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee('10GB');
     }
 
-    /** @test */
-    public function it_displays_domain_creation_timestamps(): void
+    public function test_it_displays_domain_creation_timestamps(): void
     {
         $tenant = Tenant::create(['id' => 'timestamp-test-tenant']);
         $domain = $tenant->domains()->create(['domain' => 'timestamp.example.com']);
@@ -231,8 +217,7 @@ class ShowTenantTest extends TestCase
         $response->assertSee($domain->created_at->diffForHumans());
     }
 
-    /** @test */
-    public function it_passes_tenant_with_loaded_domains_to_view(): void
+    public function test_it_passes_tenant_with_loaded_domains_to_view(): void
     {
         $tenant = Tenant::create(['id' => 'view-data-tenant']);
         $tenant->domains()->create(['domain' => 'loaded.example.com']);

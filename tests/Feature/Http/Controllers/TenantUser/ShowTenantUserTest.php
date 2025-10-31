@@ -29,8 +29,7 @@ class ShowTenantUserTest extends TestCase
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
     }
 
-    /** @test */
-    public function authenticated_user_can_view_tenant_user_details(): void
+    public function test_authenticated_user_can_view_tenant_user_details(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -41,8 +40,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertViewHas('user', $this->tenantUser);
     }
 
-    /** @test */
-    public function show_displays_user_information(): void
+    public function test_show_displays_user_information(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -53,8 +51,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee($this->tenantUser->id);
     }
 
-    /** @test */
-    public function show_displays_tenant_information(): void
+    public function test_show_displays_tenant_information(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -63,8 +60,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee($this->tenant->name);
     }
 
-    /** @test */
-    public function show_displays_action_buttons(): void
+    public function test_show_displays_action_buttons(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -75,8 +71,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee(__('Back to List'));
     }
 
-    /** @test */
-    public function show_displays_email_verification_status(): void
+    public function test_show_displays_email_verification_status(): void
     {
         $verifiedUser = User::factory()->create([
             'tenant_id' => $this->tenant->id,
@@ -90,8 +85,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee(__('Verified'));
     }
 
-    /** @test */
-    public function show_displays_unverified_email_status(): void
+    public function test_show_displays_unverified_email_status(): void
     {
         $unverifiedUser = User::factory()->create([
             'tenant_id' => $this->tenant->id,
@@ -105,8 +99,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee(__('Not verified'));
     }
 
-    /** @test */
-    public function show_displays_two_factor_authentication_status(): void
+    public function test_show_displays_two_factor_authentication_status(): void
     {
         $userWith2FA = User::factory()->create([
             'tenant_id' => $this->tenant->id,
@@ -120,8 +113,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee(__('Enabled'));
     }
 
-    /** @test */
-    public function show_displays_disabled_two_factor_authentication(): void
+    public function test_show_displays_disabled_two_factor_authentication(): void
     {
         $userWithout2FA = User::factory()->create([
             'tenant_id' => $this->tenant->id,
@@ -135,8 +127,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee(__('Disabled'));
     }
 
-    /** @test */
-    public function show_displays_delete_button(): void
+    public function test_show_displays_delete_button(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -145,16 +136,14 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee(__('Delete user'));
     }
 
-    /** @test */
-    public function unauthenticated_user_cannot_view_user_details(): void
+    public function test_unauthenticated_user_cannot_view_user_details(): void
     {
         $response = $this->get(route($this->route, [$this->tenant, $this->tenantUser]));
 
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function show_handles_non_existent_tenant(): void
+    public function test_show_handles_non_existent_tenant(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [999, $this->tenantUser]));
@@ -162,8 +151,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function show_handles_non_existent_user(): void
+    public function test_show_handles_non_existent_user(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, 999]));
@@ -171,8 +159,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
-    public function show_displays_user_timestamps(): void
+    public function test_show_displays_user_timestamps(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -182,8 +169,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee($this->tenantUser->updated_at->toDayDateTimeString());
     }
 
-    /** @test */
-    public function show_includes_delete_user_modal(): void
+    public function test_show_includes_delete_user_modal(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
@@ -192,8 +178,7 @@ class ShowTenantUserTest extends TestCase
         $response->assertSee("confirm-user-deletion-{$this->tenantUser->id}");
     }
 
-    /** @test */
-    public function show_displays_link_to_tenant(): void
+    public function test_show_displays_link_to_tenant(): void
     {
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));

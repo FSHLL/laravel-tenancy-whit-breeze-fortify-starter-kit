@@ -14,8 +14,7 @@ class CreateCentralUserCommandTest extends TestCase
 
     private string $command = 'app:create-central-user';
 
-    /** @test */
-    public function command_can_create_central_user_with_options(): void
+    public function test_command_can_create_central_user_with_options(): void
     {
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
@@ -39,8 +38,7 @@ class CreateCentralUserCommandTest extends TestCase
         $this->assertTrue(Hash::check($password, $user->password));
     }
 
-    /** @test */
-    public function command_can_create_central_user_with_interactive_input(): void
+    public function test_command_can_create_central_user_with_interactive_input(): void
     {
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
@@ -60,8 +58,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_required_name(): void
+    public function test_command_validates_required_name(): void
     {
         $email = $this->faker->unique()->safeEmail;
         $password = 'SecurePassword123!';
@@ -80,8 +77,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_required_email(): void
+    public function test_command_validates_required_email(): void
     {
         $name = $this->faker->name;
         $password = 'SecurePassword123!';
@@ -100,8 +96,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_email_format(): void
+    public function test_command_validates_email_format(): void
     {
         $name = $this->faker->name;
         $password = 'SecurePassword123!';
@@ -120,8 +115,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_unique_email(): void
+    public function test_command_validates_unique_email(): void
     {
         $existingUser = User::factory()->create();
         $name = $this->faker->name;
@@ -141,8 +135,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_password_minimum_length(): void
+    public function test_command_validates_password_minimum_length(): void
     {
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
@@ -161,8 +154,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_name_maximum_length(): void
+    public function test_command_validates_name_maximum_length(): void
     {
         $longName = str_repeat('a', 256);
         $email = $this->faker->unique()->safeEmail;
@@ -182,8 +174,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_validates_email_maximum_length(): void
+    public function test_command_validates_email_maximum_length(): void
     {
         $name = $this->faker->name;
         $longEmail = str_repeat('a', 250).'@example.com';
@@ -203,8 +194,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_converts_email_to_lowercase_when_configured(): void
+    public function test_command_converts_email_to_lowercase_when_configured(): void
     {
         config(['fortify.lowercase_usernames' => true]);
 
@@ -227,8 +217,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_preserves_email_case_when_not_configured(): void
+    public function test_command_preserves_email_case_when_not_configured(): void
     {
         config(['fortify.lowercase_usernames' => false]);
 
@@ -251,8 +240,7 @@ class CreateCentralUserCommandTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function command_creates_user_with_null_tenant_id(): void
+    public function test_command_creates_user_with_null_tenant_id(): void
     {
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
@@ -269,8 +257,7 @@ class CreateCentralUserCommandTest extends TestCase
         $this->assertNull($user->tenant_id);
     }
 
-    /** @test */
-    public function command_handles_multiple_validation_errors(): void
+    public function test_command_handles_multiple_validation_errors(): void
     {
         $existingUser = User::factory()->create();
 
@@ -286,8 +273,7 @@ class CreateCentralUserCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
-    /** @test */
-    public function command_displays_success_message_with_user_details(): void
+    public function test_command_displays_success_message_with_user_details(): void
     {
         $name = 'John Doe';
         $email = 'john@example.com';

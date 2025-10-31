@@ -21,8 +21,7 @@ class IndexTenantTest extends TestCase
         $this->actingAs($user);
     }
 
-    /** @test */
-    public function it_can_display_the_tenants_index_page(): void
+    public function test_it_can_display_the_tenants_index_page(): void
     {
         $response = $this->get(route($this->route));
 
@@ -31,8 +30,7 @@ class IndexTenantTest extends TestCase
         $response->assertViewHas('tenants');
     }
 
-    /** @test */
-    public function it_displays_empty_state_when_no_tenants_exist(): void
+    public function test_it_displays_empty_state_when_no_tenants_exist(): void
     {
         $response = $this->get(route($this->route));
 
@@ -42,8 +40,7 @@ class IndexTenantTest extends TestCase
         $response->assertSee('Create your first tenant');
     }
 
-    /** @test */
-    public function it_displays_tenants_list_when_tenants_exist(): void
+    public function test_it_displays_tenants_list_when_tenants_exist(): void
     {
         $tenant1 = Tenant::create(['id' => 'tenant-1']);
         $tenant1->domains()->create(['domain' => 'tenant1.example.com']);
@@ -62,8 +59,7 @@ class IndexTenantTest extends TestCase
         $response->assertDontSee('No tenants');
     }
 
-    /** @test */
-    public function it_displays_tenant_without_domains(): void
+    public function test_it_displays_tenant_without_domains(): void
     {
         Tenant::create(['id' => 'tenant-without-domains']);
 
@@ -74,8 +70,7 @@ class IndexTenantTest extends TestCase
         $response->assertSee('No domains');
     }
 
-    /** @test */
-    public function it_displays_tenant_with_multiple_domains(): void
+    public function test_it_displays_tenant_with_multiple_domains(): void
     {
         $tenant = Tenant::create(['id' => 'multi-domain-tenant']);
         $tenant->domains()->createMany([
@@ -93,8 +88,7 @@ class IndexTenantTest extends TestCase
         $response->assertSee('domain3.example.com');
     }
 
-    /** @test */
-    public function it_displays_correct_created_date_format(): void
+    public function test_it_displays_correct_created_date_format(): void
     {
         $tenant = Tenant::create(['id' => 'date-test-tenant']);
 
@@ -104,8 +98,7 @@ class IndexTenantTest extends TestCase
         $response->assertSee($tenant->created_at->toDayDateTimeString());
     }
 
-    /** @test */
-    public function it_shows_action_buttons_for_each_tenant(): void
+    public function test_it_shows_action_buttons_for_each_tenant(): void
     {
         $tenant = Tenant::create(['id' => 'action-test-tenant']);
 
@@ -119,8 +112,7 @@ class IndexTenantTest extends TestCase
         $response->assertSee(route('tenants.edit', $tenant));
     }
 
-    /** @test */
-    public function it_displays_create_tenant_button(): void
+    public function test_it_displays_create_tenant_button(): void
     {
         $response = $this->get(route($this->route));
 
@@ -129,8 +121,7 @@ class IndexTenantTest extends TestCase
         $response->assertSee(route('tenants.create'));
     }
 
-    /** @test */
-    public function it_uses_pagination(): void
+    public function test_it_uses_pagination(): void
     {
         for ($i = 1; $i <= 20; $i++) {
             Tenant::create(['id' => "tenant-{$i}"]);
@@ -145,8 +136,7 @@ class IndexTenantTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $tenants);
     }
 
-    /** @test */
-    public function it_requires_authentication(): void
+    public function test_it_requires_authentication(): void
     {
         $this->post(route('logout'));
 
@@ -155,8 +145,7 @@ class IndexTenantTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
-    public function it_displays_correct_page_title(): void
+    public function test_it_displays_correct_page_title(): void
     {
         $response = $this->get(route($this->route));
 
