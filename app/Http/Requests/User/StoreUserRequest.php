@@ -25,6 +25,8 @@ class StoreUserRequest extends FormRequest
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+            'roles' => ['sometimes', 'array'],
+            'roles.*' => [Rule::exists('roles', 'name')->where('tenant_id', tenant('id'))],
         ];
     }
 

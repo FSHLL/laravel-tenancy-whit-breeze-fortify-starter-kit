@@ -22,6 +22,8 @@ class UpdateUserRequest extends StoreUserRequest
                 Rule::unique(User::class)->ignore($userId),
             ],
             'password' => ['nullable', ...Arr::except($this->passwordRules(), 0)],
+            'roles' => ['sometimes', 'array'],
+            'roles.*' => [Rule::exists('roles', 'name')->where('tenant_id', tenant('id'))],
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,9 @@ class UserController extends Controller
 
     public function create(): View
     {
-        return view('users.create');
+        return view('users.create', [
+            'roles' => Role::orderBy('name')->get(),
+        ]);
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
@@ -32,11 +35,16 @@ class UserController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
 
-        return redirect()->route('users.show', $user);
+        $user->syncRoles($request->input('roles', []));
+
+        return redirect()->route('users.show', $user)
+            ->with('success', __('User created successfully.'));
     }
 
     public function show(User $user): View
     {
+        $user->load(['roles.permissions']);
+
         return view('users.show', [
             'user' => $user,
         ]);
@@ -44,10 +52,11 @@ class UserController extends Controller
 
     public function edit(int $userId): View
     {
-        $user = User::findOrFail($userId);
+        $user = User::with('roles')->findOrFail($userId);
 
         return view('users.edit', [
             'user' => $user,
+            'roles' => Role::orderBy('name')->get(),
         ]);
     }
 
@@ -64,6 +73,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $user->syncRoles($request->input('roles', []));
 
         return redirect()->route('users.show', $user)
             ->with('success', __('User updated successfully.'));
