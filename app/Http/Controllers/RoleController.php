@@ -2,15 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CentralPermissions;
+use App\Enums\Permissions;
 use App\Http\Requests\Role\StoreRoleRequest;
 use App\Http\Requests\Role\UpdateRoleRequest;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class RoleController extends Controller
+class RoleController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(PermissionMiddleware::using([CentralPermissions::CREATE_ROLE, Permissions::CREATE_ROLE_BY_TENANT]), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using([CentralPermissions::VIEW_ROLE, Permissions::VIEW_ROLE_BY_TENANT]), only: ['index', 'show']),
+            new Middleware(PermissionMiddleware::using([CentralPermissions::UPDATE_ROLE, Permissions::UPDATE_ROLE_BY_TENANT]), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using([CentralPermissions::DELETE_ROLE, Permissions::DELETE_ROLE_BY_TENANT]), only: ['destroy']),
+        ];
+    }
+
     public function index(): View
     {
         return view('roles.index', [

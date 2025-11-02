@@ -2,17 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Permissions;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(PermissionMiddleware::using(Permissions::CREATE_TENANT_USER_BY_TENANT), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using(Permissions::VIEW_TENANT_USER_BY_TENANT), only: ['index', 'show']),
+            new Middleware(PermissionMiddleware::using(Permissions::UPDATE_TENANT_USER_BY_TENANT), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using(Permissions::DELETE_TENANT_USER_BY_TENANT), only: ['destroy']),
+        ];
+    }
+
     public function index(): View
     {
         return view('users.index', [

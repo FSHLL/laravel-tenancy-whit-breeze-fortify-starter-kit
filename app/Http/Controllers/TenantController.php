@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CentralPermissions;
 use App\Enums\Permissions;
 use App\Http\Requests\Tenant\StoreTenantRequest;
 use App\Http\Requests\Tenant\UpdateTenantRequest;
@@ -9,11 +10,24 @@ use App\Models\Permission;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Arr;
 use Illuminate\View\View;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class TenantController extends Controller
+class TenantController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(PermissionMiddleware::using(CentralPermissions::CREATE_TENANT), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using(CentralPermissions::VIEW_TENANT), only: ['index', 'show']),
+            new Middleware(PermissionMiddleware::using(CentralPermissions::UPDATE_TENANT), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using(CentralPermissions::DELETE_TENANT), only: ['destroy']),
+        ];
+    }
+
     public function index(): View
     {
         return view('tenants.index', [
