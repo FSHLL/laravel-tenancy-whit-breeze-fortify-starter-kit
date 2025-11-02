@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -290,5 +291,85 @@ class UpdateUserTest extends TestCase
         $this->assertEquals('Updated Name', $this->targetUser->name);
         $this->assertEquals('updated@example.com', $this->targetUser->email);
         $this->assertEquals($originalCreatedAt, $this->targetUser->created_at); // Should not change
+    }
+
+    public function test_update_user_with_roles(): void
+    {
+        $role1 = Role::factory()->create(['name' => 'Admin']);
+        $role2 = Role::factory()->create(['name' => 'Manager']);
+
+        $updateData = [
+            'name' => 'Updated Name',
+            'email' => $this->targetUser->email,
+            'roles' => [$role1->name, $role2->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put($this->route, $updateData);
+
+        $this->targetUser->refresh();
+        $this->assertTrue($this->targetUser->hasRole($role1->name));
+        $this->assertTrue($this->targetUser->hasRole($role2->name));
+    }
+
+    public function test_update_user_removes_unchecked_roles(): void
+    {
+        $role1 = Role::factory()->create(['name' => 'Admin']);
+        $role2 = Role::factory()->create(['name' => 'Manager']);
+
+        $this->targetUser->assignRole([$role1->name, $role2->name]);
+
+        $updateData = [
+            'name' => $this->targetUser->name,
+            'email' => $this->targetUser->email,
+            'roles' => [$role1->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put($this->route, $updateData);
+
+        $this->targetUser->refresh();
+        $this->assertTrue($this->targetUser->hasRole($role1->name));
+        $this->assertFalse($this->targetUser->hasRole($role2->name));
+    }
+
+    public function test_update_user_removes_all_roles_when_none_selected(): void
+    {
+        $role = Role::factory()->create(['name' => 'Admin']);
+        $this->targetUser->assignRole($role);
+
+        $updateData = [
+            'name' => $this->targetUser->name,
+            'email' => $this->targetUser->email,
+            'roles' => [],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put($this->route, $updateData);
+
+        $this->targetUser->refresh();
+        $this->assertCount(0, $this->targetUser->roles);
+    }
+
+    public function test_update_user_can_add_new_roles(): void
+    {
+        $role1 = Role::factory()->create(['name' => 'Admin']);
+        $role2 = Role::factory()->create(['name' => 'Manager']);
+
+        $this->targetUser->assignRole($role1->name);
+
+        $updateData = [
+            'name' => $this->targetUser->name,
+            'email' => $this->targetUser->email,
+            'roles' => [$role1->name, $role2->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put($this->route, $updateData);
+
+        $this->targetUser->refresh();
+        $this->assertTrue($this->targetUser->hasRole($role1->name));
+        $this->assertTrue($this->targetUser->hasRole($role2->name));
+        $this->assertCount(2, $this->targetUser->roles);
     }
 }

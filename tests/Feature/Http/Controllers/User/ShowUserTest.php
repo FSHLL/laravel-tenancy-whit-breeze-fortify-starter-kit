@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -136,5 +138,60 @@ class ShowUserTest extends TestCase
             ->assertSee('Security Status')
             ->assertSee('General details about this user')
             ->assertSee('Account verification and security settings');
+    }
+
+    public function test_show_user_displays_roles_section(): void
+    {
+        $role = Role::factory()->create(['name' => 'Admin']);
+        $this->targetUser->assignRole($role);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee('Roles & Permissions')
+            ->assertSee($role->name);
+    }
+
+    public function test_show_user_displays_role_permissions(): void
+    {
+        $permission1 = Permission::create(['name' => 'view users']);
+        $permission2 = Permission::create(['name' => 'edit users']);
+
+        $role = Role::factory()->create(['name' => 'Admin']);
+        $role->givePermissionTo([$permission1, $permission2]);
+
+        $this->targetUser->assignRole($role);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee($role->name)
+            ->assertSee($permission1->name)
+            ->assertSee($permission2->name)
+            ->assertSee('2 permissions');
+    }
+
+    public function test_show_user_displays_no_roles_message(): void
+    {
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee('No roles assigned')
+            ->assertSee('This user does not have any roles assigned yet')
+            ->assertSee('Assign Roles');
+    }
+
+    public function test_show_user_displays_multiple_roles(): void
+    {
+        $role1 = Role::factory()->create(['name' => 'Admin']);
+        $role2 = Role::factory()->create(['name' => 'Manager']);
+
+        $this->targetUser->assignRole([$role1, $role2]);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee($role1->name)
+            ->assertSee($role2->name);
     }
 }

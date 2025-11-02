@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -196,5 +197,62 @@ class StoreUserTest extends TestCase
         $this->actingAs($this->authenticatedUser)
             ->post($this->route, $userData)
             ->assertSessionHasErrors('name');
+    }
+
+    public function test_store_user_with_roles(): void
+    {
+        $role1 = Role::factory()->create(['name' => 'Admin']);
+        $role2 = Role::factory()->create(['name' => 'Manager']);
+
+        $userData = [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => [$role1->name, $role2->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->post($this->route, $userData);
+
+        $user = User::where('email', $userData['email'])->first();
+        $this->assertTrue($user->hasRole($role1->name));
+        $this->assertTrue($user->hasRole($role2->name));
+    }
+
+    public function test_store_user_without_roles(): void
+    {
+        $userData = [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->post($this->route, $userData);
+
+        $user = User::where('email', $userData['email'])->first();
+        $this->assertCount(0, $user->roles);
+    }
+
+    public function test_store_user_with_single_role(): void
+    {
+        $role = Role::factory()->create(['name' => 'User']);
+
+        $userData = [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => [$role->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->post($this->route, $userData);
+
+        $user = User::where('email', $userData['email'])->first();
+        $this->assertTrue($user->hasRole($role->name));
+        $this->assertCount(1, $user->roles);
     }
 }

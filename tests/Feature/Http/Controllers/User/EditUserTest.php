@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -195,5 +196,42 @@ class EditUserTest extends TestCase
             ->assertOk()
             ->assertSee('name="_method"', false)
             ->assertSee('value="PUT"', false);
+    }
+
+    public function test_edit_user_page_displays_roles_section(): void
+    {
+        Role::factory()->create(['name' => 'Admin']);
+        Role::factory()->create(['name' => 'Manager']);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee('Assign Roles')
+            ->assertSee('Admin')
+            ->assertSee('Manager');
+    }
+
+    public function test_edit_user_page_shows_current_roles_checked(): void
+    {
+        Role::factory()->create(['name' => 'Admin']);
+        $this->targetUser->assignRole('Admin');
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk();
+
+        $response->assertSee('value="Admin"', false);
+        $response->assertSee('checked', false);
+    }
+
+    public function test_edit_user_page_shows_role_controls(): void
+    {
+        Role::factory()->create(['name' => 'User']);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee('Select All')
+            ->assertSee('Select None');
     }
 }

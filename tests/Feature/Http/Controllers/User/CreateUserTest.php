@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -100,5 +101,40 @@ class CreateUserTest extends TestCase
             ->assertOk()
             ->assertSee('Cancel')
             ->assertSee('Create User');
+    }
+
+    public function test_create_user_page_displays_roles_section(): void
+    {
+        Role::factory()->create(['name' => 'Admin']);
+        Role::factory()->create(['name' => 'Manager']);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee('Assign Roles')
+            ->assertSee('Admin')
+            ->assertSee('Manager')
+            ->assertSee('name="roles[]"', false);
+    }
+
+    public function test_create_user_page_shows_role_selection_controls(): void
+    {
+        Role::factory()->create(['name' => 'Admin']);
+
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertSee('Select All')
+            ->assertSee('Select None')
+            ->assertSee('id="select-all-roles"', false)
+            ->assertSee('id="select-none-roles"', false);
+    }
+
+    public function test_create_user_page_handles_no_roles_available(): void
+    {
+        $this->actingAs($this->authenticatedUser)
+            ->get($this->route)
+            ->assertOk()
+            ->assertDontSee('Assign Roles');
     }
 }
