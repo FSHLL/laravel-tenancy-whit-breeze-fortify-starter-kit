@@ -13,4 +13,9 @@ enum CentralPermissions: string
     case VIEW_TENANT_USER = 'view tenant user';
     case UPDATE_TENANT_USER = 'update tenant user';
     case DELETE_TENANT_USER = 'delete tenant user';
+
+    case CREATE_ROLE = 'create role';
+    case VIEW_ROLE = 'view role';
+    case UPDATE_ROLE = 'update role';
+    case DELETE_ROLE = 'delete role';
 }
