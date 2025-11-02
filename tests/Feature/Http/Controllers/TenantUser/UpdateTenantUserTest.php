@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -343,5 +344,85 @@ class UpdateTenantUserTest extends TestCase
         $response->assertRedirect(route('tenants.users.show', [$this->tenant, $this->tenantUser]));
         $this->tenantUser->refresh();
         $this->assertEquals($originalPassword, $this->tenantUser->password);
+    }
+
+    public function test_update_user_with_roles(): void
+    {
+        $role1 = Role::create(['name' => 'Admin']);
+        $role2 = Role::create(['name' => 'Manager']);
+
+        $updateData = [
+            'name' => 'Updated Name',
+            'email' => $this->tenantUser->email,
+            'roles' => [$role1->name, $role2->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
+
+        $this->tenantUser->refresh();
+        $this->assertTrue($this->tenantUser->hasRole($role1->name));
+        $this->assertTrue($this->tenantUser->hasRole($role2->name));
+    }
+
+    public function test_update_user_removes_unchecked_roles(): void
+    {
+        $role1 = Role::create(['name' => 'Admin']);
+        $role2 = Role::create(['name' => 'Manager']);
+
+        $this->tenantUser->assignRole([$role1->name, $role2->name]);
+
+        $updateData = [
+            'name' => $this->tenantUser->name,
+            'email' => $this->tenantUser->email,
+            'roles' => [$role1->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
+
+        $this->tenantUser->refresh();
+        $this->assertTrue($this->tenantUser->hasRole('Admin'));
+        $this->assertFalse($this->tenantUser->hasRole('Manager'));
+    }
+
+    public function test_update_user_removes_all_roles_when_none_selected(): void
+    {
+        $role = Role::create(['name' => 'Admin']);
+        $this->tenantUser->assignRole($role);
+
+        $updateData = [
+            'name' => $this->tenantUser->name,
+            'email' => $this->tenantUser->email,
+            'roles' => [],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
+
+        $this->tenantUser->refresh();
+        $this->assertCount(0, $this->tenantUser->roles);
+    }
+
+    public function test_update_user_can_add_new_roles(): void
+    {
+        $role1 = Role::create(['name' => 'Admin']);
+        $role2 = Role::create(['name' => 'Manager']);
+
+        $this->tenantUser->assignRole($role1);
+
+        $updateData = [
+            'name' => $this->tenantUser->name,
+            'email' => $this->tenantUser->email,
+            'roles' => [$role1->name, $role2->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
+
+        $this->tenantUser->refresh();
+        $this->assertTrue($this->tenantUser->hasRole($role1->name));
+        $this->assertTrue($this->tenantUser->hasRole($role2->name));
+        $this->assertCount(2, $this->tenantUser->roles);
     }
 }

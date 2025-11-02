@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -217,5 +218,62 @@ class StoreTenantUserTest extends TestCase
 
         $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
         $response->assertRedirect(route('tenants.users.show', [$this->tenant, $user]));
+    }
+
+    public function test_store_user_with_roles(): void
+    {
+        $role1 = Role::create(['name' => 'Admin']);
+        $role2 = Role::create(['name' => 'Manager']);
+
+        $userData = [
+            'name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => [$role1->name, $role2->name],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->post(route($this->route, $this->tenant), $userData);
+
+        $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
+        $this->assertTrue($user->hasRole('Admin'));
+        $this->assertTrue($user->hasRole('Manager'));
+    }
+
+    public function test_store_user_without_roles(): void
+    {
+        $userData = [
+            'name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->post(route($this->route, $this->tenant), $userData);
+
+        $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
+        $this->assertCount(0, $user->roles);
+    }
+
+    public function test_store_user_with_single_role(): void
+    {
+        $role = Role::create(['name' => 'User']);
+
+        $userData = [
+            'name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => ['User'],
+        ];
+
+        $this->actingAs($this->authenticatedUser)
+            ->post(route($this->route, $this->tenant), $userData);
+
+        $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
+        $this->assertTrue($user->hasRole('User'));
+        $this->assertCount(1, $user->roles);
     }
 }

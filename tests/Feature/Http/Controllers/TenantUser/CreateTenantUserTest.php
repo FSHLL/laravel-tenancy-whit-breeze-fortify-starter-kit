@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -126,5 +127,41 @@ class CreateTenantUserTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee(__('Cancel'));
+    }
+
+    public function test_create_form_displays_roles_section_when_roles_exist(): void
+    {
+        Role::factory()->create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        Role::factory()->create(['name' => 'Manager', 'tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, $this->tenant));
+
+        $response->assertStatus(200);
+        $response->assertSee('Assign Roles');
+        $response->assertSee('Admin');
+        $response->assertSee('Manager');
+        $response->assertSee('name="roles[]"', false);
+    }
+
+    public function test_create_form_shows_role_selection_controls(): void
+    {
+        Role::factory()->create(['name' => 'User', 'tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, $this->tenant));
+
+        $response->assertStatus(200);
+        $response->assertSee('Select All');
+        $response->assertSee('Select None');
+    }
+
+    public function test_create_form_handles_no_roles_available(): void
+    {
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, $this->tenant));
+
+        $response->assertStatus(200);
+        $response->assertDontSee('Assign Roles');
     }
 }

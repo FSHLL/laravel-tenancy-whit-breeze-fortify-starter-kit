@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -185,5 +187,64 @@ class ShowTenantUserTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee(route('tenants.show', $this->tenant));
+    }
+
+    public function test_show_displays_roles_section(): void
+    {
+        $role = Role::create(['name' => 'Admin']);
+        $this->tenantUser->assignRole('Admin');
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Roles & Permissions');
+        $response->assertSee('Admin');
+    }
+
+    public function test_show_displays_role_permissions(): void
+    {
+        $permission1 = Permission::create(['name' => 'view users']);
+        $permission2 = Permission::create(['name' => 'edit users']);
+
+        $role = Role::create(['name' => 'Admin']);
+        $role->givePermissionTo([$permission1, $permission2]);
+
+        $this->tenantUser->assignRole('Admin');
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Admin');
+        $response->assertSee('view users');
+        $response->assertSee('edit users');
+        $response->assertSee('2 permissions');
+    }
+
+    public function test_show_displays_no_roles_message(): void
+    {
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('No roles assigned');
+        $response->assertSee('This user does not have any roles assigned yet');
+        $response->assertSee('Assign Roles');
+    }
+
+    public function test_show_displays_multiple_roles(): void
+    {
+        $role1 = Role::create(['name' => 'Admin']);
+        $role2 = Role::create(['name' => 'Manager']);
+
+        $this->tenantUser->assignRole(['Admin', 'Manager']);
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Admin');
+        $response->assertSee('Manager');
     }
 }

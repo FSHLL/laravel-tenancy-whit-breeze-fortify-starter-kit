@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -139,5 +140,44 @@ class EditTenantUserTest extends TestCase
             'tenant' => $this->tenant,
             'user' => $this->tenantUser,
         ]);
+    }
+
+    public function test_edit_form_displays_roles_section(): void
+    {
+        $role1 = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $role2 = Role::create(['name' => 'Manager', 'tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Assign Roles');
+        $response->assertSee($role1->name);
+        $response->assertSee($role2->name);
+    }
+
+    public function test_edit_form_shows_current_roles_checked(): void
+    {
+        $role = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $this->tenantUser->assignRole($role);
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('value="Admin"', false);
+        $response->assertSee('checked', false);
+    }
+
+    public function test_edit_form_shows_role_controls(): void
+    {
+        Role::create(['name' => 'User', 'tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->authenticatedUser)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Select All');
+        $response->assertSee('Select None');
     }
 }
