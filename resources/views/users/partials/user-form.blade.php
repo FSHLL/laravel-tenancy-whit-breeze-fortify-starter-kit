@@ -36,70 +36,53 @@
 
 <!-- Roles -->
 @if(isset($roles) && $roles->count() > 0)
-    <div class="mb-6">
-        <x-input-label :value="__('Roles')" class="mb-3" />
-        <div class="space-y-4">
-            <!-- Select All/None buttons -->
-            <div class="flex gap-2 mb-4">
-                <button type="button" id="select-all-roles"
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    {{ __('Select All') }}
-                </button>
-                <button type="button" id="select-none-roles"
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    {{ __('Select None') }}
-                </button>
-                <div class="flex items-center ml-4 text-sm text-gray-600 dark:text-gray-400">
-                    <span id="selected-roles-count">{{ isset($user) && $user->roles ? $user->roles->count() : 0 }}</span> {{ __('of') }} {{ $roles->count() }} {{ __('selected') }}
-                </div>
-            </div>
-
-            <!-- Roles Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach ($roles as $role)
-                    <div class="relative flex items-start">
-                        <div class="flex items-center h-5">
-                            <input id="role_{{ $role->id }}" name="roles[]"
-                                type="checkbox" value="{{ $role->name }}"
-                                {{
-                                    isset($user) && $user->hasRole($role->name)
-                                        ? 'checked'
-                                        : (in_array($role->name, old('roles', [])) ? 'checked' : '')
-                                }}
-                                class="role-checkbox focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded">
-                        </div>
-                        <div class="ml-3 text-sm">
-                            <label for="role_{{ $role->id }}"
-                                class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-                                {{ $role->name }}
-                            </label>
-                            @if ($role->permissions && $role->permissions->count() > 0)
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $role->permissions->count() }} {{ __('permission(s)') }}
-                                </p>
-                            @endif
-                            @if ($role->guard_name)
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 ml-0 mt-1">
-                                    {{ $role->guard_name }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-
-            <x-input-error :messages="$errors->get('roles')" class="mt-2" />
-            <x-input-error :messages="$errors->get('roles.*')" class="mt-2" />
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-                @if(isset($user))
-                    {{ __('Select the roles that this user should have. Changes will take effect immediately after saving.') }}
-                @else
-                    {{ __('Select the roles that this new user should have. You can modify roles later.') }}
-                @endif
-            </p>
+<div class="mb-6">
+    <div class="flex items-center justify-between mb-2">
+        <x-input-label for="roles" :value="__('Assign Roles')" />
+        <div class="flex gap-2">
+            <button type="button" id="select-all-roles"
+                class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium">
+                {{ __('Select All') }}
+            </button>
+            <span class="text-gray-400">|</span>
+            <button type="button" id="select-none-roles"
+                class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium">
+                {{ __('Select None') }}
+            </button>
         </div>
     </div>
+
+    <div class="mt-2 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            {{ __('Select the roles to assign to this user. Selected:') }}
+            <span id="selected-roles-count" class="font-semibold text-indigo-600 dark:text-indigo-400">0</span>
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @foreach($roles as $role)
+                <label class="flex items-start p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-600 cursor-pointer transition-colors">
+                    <input type="checkbox"
+                        name="roles[]"
+                        value="{{ $role->name }}"
+                        class="role-checkbox mt-1 rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
+                        {{ isset($user) && $user->hasRole($role->name) ? 'checked' : '' }}>
+                    <div class="ml-3 flex-1">
+                        <span class="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ $role->name }}
+                        </span>
+                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {{ $role->permissions->count() }} {{ __('permissions') }}
+                            @if($role->guard_name)
+                                · {{ $role->guard_name }}
+                            @endif
+                        </span>
+                    </div>
+                </label>
+            @endforeach
+        </div>
+    </div>
+    <x-input-error :messages="$errors->get('roles')" class="mt-2" />
+</div>
 @endif
 
 @if(isset($user))

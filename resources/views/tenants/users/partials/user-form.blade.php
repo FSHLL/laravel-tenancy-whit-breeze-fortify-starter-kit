@@ -34,6 +34,57 @@
         name="password_confirmation" autocomplete="new-password" />
 </div>
 
+<!-- Roles -->
+@if(isset($roles) && $roles->count() > 0)
+<div class="mb-6">
+    <div class="flex items-center justify-between mb-2">
+        <x-input-label for="roles" :value="__('Assign Roles')" />
+        <div class="flex gap-2">
+            <button type="button" id="select-all-roles"
+                class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium">
+                {{ __('Select All') }}
+            </button>
+            <span class="text-gray-400">|</span>
+            <button type="button" id="select-none-roles"
+                class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-medium">
+                {{ __('Select None') }}
+            </button>
+        </div>
+    </div>
+    
+    <div class="mt-2 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            {{ __('Select the roles to assign to this user. Selected:') }} 
+            <span id="selected-roles-count" class="font-semibold text-indigo-600 dark:text-indigo-400">0</span>
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @foreach($roles as $role)
+                <label class="flex items-start p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-600 cursor-pointer transition-colors">
+                    <input type="checkbox" 
+                        name="roles[]" 
+                        value="{{ $role->name }}" 
+                        class="role-checkbox mt-1 rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
+                        {{ isset($user) && $user->hasRole($role->name) ? 'checked' : '' }}>
+                    <div class="ml-3 flex-1">
+                        <span class="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {{ $role->name }}
+                        </span>
+                        <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {{ $role->permissions->count() }} {{ __('permissions') }}
+                            @if($role->guard_name)
+                                · {{ $role->guard_name }}
+                            @endif
+                        </span>
+                    </div>
+                </label>
+            @endforeach
+        </div>
+    </div>
+    <x-input-error :messages="$errors->get('roles')" class="mt-2" />
+</div>
+@endif
+
 @if(isset($user))
     <!-- Current User Info for Edit -->
     <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
@@ -66,4 +117,40 @@
             <p><strong>{{ __('Tenant ID') }}:</strong> {{ $tenant->id }}</p>
         </div>
     </div>
+@endif
+
+<!-- JavaScript for Role Selection -->
+@if(isset($roles) && $roles->count() > 0)
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.role-checkbox');
+        const selectAllBtn = document.getElementById('select-all-roles');
+        const selectNoneBtn = document.getElementById('select-none-roles');
+        const countSpan = document.getElementById('selected-roles-count');
+
+        function updateCount() {
+            const checkedCount = document.querySelectorAll('.role-checkbox:checked').length;
+            countSpan.textContent = checkedCount;
+        }
+
+        selectAllBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
+            checkboxes.forEach(cb => cb.checked = true);
+            updateCount();
+        });
+
+        selectNoneBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
+            checkboxes.forEach(cb => cb.checked = false);
+            updateCount();
+        });
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateCount);
+        });
+
+        // Initial count
+        updateCount();
+    });
+</script>
 @endif

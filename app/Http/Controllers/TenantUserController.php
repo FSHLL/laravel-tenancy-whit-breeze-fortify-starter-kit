@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,9 @@ class TenantUserController extends Controller
 
     public function create(Tenant $tenant): View
     {
-        return view('tenants.users.create', compact('tenant'));
+        $roles = Role::withoutCentralApp()->where('tenant_id', $tenant->id)->get();
+
+        return view('tenants.users.create', compact('tenant', 'roles'));
     }
 
     public function store(StoreUserRequest $request, Tenant $tenant): RedirectResponse
@@ -35,12 +38,17 @@ class TenantUserController extends Controller
             'tenant_id' => $tenant->id,
         ]);
 
+        $user->syncRoles($request->input('roles', []));
+
         return redirect()->route('tenants.users.show', [$tenant, $user]);
     }
 
     public function show(Tenant $tenant, int $userId): View
     {
-        $user = User::withoutCentralApp()->where('tenant_id', $tenant->id)->findOrFail($userId);
+        $user = User::withoutCentralApp()
+            ->where('tenant_id', $tenant->id)
+            ->with(['roles.permissions'])
+            ->findOrFail($userId);
 
         return view('tenants.users.show', [
             'tenant' => $tenant,
@@ -50,11 +58,17 @@ class TenantUserController extends Controller
 
     public function edit(Tenant $tenant, int $userId): View
     {
-        $user = User::withoutCentralApp()->where('tenant_id', $tenant->id)->findOrFail($userId);
+        $user = User::withoutCentralApp()
+            ->where('tenant_id', $tenant->id)
+            ->with('roles')
+            ->findOrFail($userId);
+
+        $roles = Role::withoutCentralApp()->where('tenant_id', $tenant->id)->get();
 
         return view('tenants.users.edit', [
             'tenant' => $tenant,
             'user' => $user,
+            'roles' => $roles,
         ]);
     }
 
@@ -73,6 +87,7 @@ class TenantUserController extends Controller
         }
 
         $user->update($data);
+        $user->syncRoles($request->input('roles', []));
 
         return redirect()->route('tenants.users.show', [$tenant, $user])
             ->with('success', __('User updated successfully.'));
