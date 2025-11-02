@@ -19,6 +19,6 @@ Route::middleware([
     Route::middleware('auth')->group(function () {
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-        Route::resource('roles', RoleController::class);
+        Route::resource('roles', RoleController::class)->middleware('verified');
     });
 });

@@ -26,5 +26,5 @@ Route::middleware([
     Route::get('/tenant', function () {
         return 'This is your multi-tenant application. The id of the current tenant is '.tenant('id');
     });
-    Route::resource('users', UserController::class)->middleware('auth');
+    Route::resource('users', UserController::class)->middleware(['auth', 'verified']);
 });
