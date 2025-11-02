@@ -3,6 +3,8 @@
 namespace Tests\Feature\Http\Controllers\Role;
 
 use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\CentralPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,6 +23,12 @@ class CreateRoleTest extends TestCase
 
         $user = User::factory()->create();
         $this->actingAs($user);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::CREATE_ROLE->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
     }
 
     public function test_authenticated_user_can_access_create_role_page(): void
@@ -29,6 +37,16 @@ class CreateRoleTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('roles.create');
+    }
+
+    public function test_user_without_permission_cannot_access_create(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route));
+
+        $response->assertStatus(403);
     }
 
     public function test_unauthenticated_user_cannot_access_create_role_page(): void
@@ -67,13 +85,5 @@ class CreateRoleTest extends TestCase
             $response->assertSee($permission->value);
             $response->assertSee('value="'.$permission->value.'"', false);
         }
-    }
-
-    public function test_create_role_page_handles_no_permissions(): void
-    {
-        $response = $this->get(route($this->route));
-
-        $response->assertStatus(200);
-        $response->assertSee('No permissions available');
     }
 }

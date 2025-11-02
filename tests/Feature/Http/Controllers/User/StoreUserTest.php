@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Enums\Permissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -30,9 +32,15 @@ class StoreUserTest extends TestCase
 
         $this->tenant->domains()->create(['domain' => $this->tenant->id]);
 
-        $this->authenticatedUser = User::factory()->create();
+        $this->authenticatedUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
 
         $this->route = "http://{$this->tenant->id}.localhost/users";
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => Permissions::CREATE_TENANT_USER_BY_TENANT->value, 'tenant_id' => $this->tenant->id]);
+        $role = Role::create(['name' => 'Test Role', 'tenant_id' => $this->tenant->id]);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_create_user(): void
@@ -56,6 +64,26 @@ class StoreUserTest extends TestCase
         $this->assertTrue(Hash::check('password123', $user->password));
 
         $response->assertRedirect(route('users.show', $user));
+    }
+
+    public function test_user_without_permission_cannot_store_user(): void
+    {
+        $userWithoutPermission = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        $userData = [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->post($this->route, $userData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('users', [
+            'email' => $userData['email'],
+        ]);
     }
 
     public function test_unauthenticated_user_cannot_create_user(): void

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -29,6 +31,12 @@ class UpdateTenantUserTest extends TestCase
         $this->tenant = Tenant::factory()->create();
         $this->authenticatedUser = User::factory()->create();
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::UPDATE_TENANT_USER->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_update_tenant_user(): void
@@ -47,6 +55,25 @@ class UpdateTenantUserTest extends TestCase
             'name' => $updateData['name'],
             'email' => $updateData['email'],
             'tenant_id' => $this->tenant->id,
+        ]);
+    }
+
+    public function test_user_without_permission_cannot_update_tenant_user(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $updateData = [
+            'name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+        ];
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('users', [
+            'id' => $this->tenantUser->id,
+            'name' => $updateData['name'],
         ]);
     }
 
@@ -353,6 +380,8 @@ class UpdateTenantUserTest extends TestCase
         $role1 = Role::create(['name' => 'Admin']);
         $role2 = Role::create(['name' => 'Manager']);
 
+        tenancy()->end();
+
         $updateData = [
             'name' => 'Updated Name',
             'email' => $this->tenantUser->email,
@@ -362,6 +391,7 @@ class UpdateTenantUserTest extends TestCase
         $this->actingAs($this->authenticatedUser)
             ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
 
+        tenancy()->initialize($this->tenant);
         $this->assertTrue($this->tenantUser->hasRole($role1->name));
         $this->assertTrue($this->tenantUser->hasRole($role2->name));
     }
@@ -370,10 +400,12 @@ class UpdateTenantUserTest extends TestCase
     {
         tenancy()->initialize($this->tenant);
 
-        $role1 = Role::create(['name' => 'Admin']);
-        $role2 = Role::create(['name' => 'Manager']);
+        $role1 = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $role2 = Role::create(['name' => 'Manager', 'tenant_id' => $this->tenant->id]);
 
         $this->tenantUser->assignRole([$role1->name, $role2->name]);
+
+        tenancy()->end();
 
         $updateData = [
             'name' => $this->tenantUser->name,
@@ -384,6 +416,7 @@ class UpdateTenantUserTest extends TestCase
         $this->actingAs($this->authenticatedUser)
             ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
 
+        tenancy()->initialize($this->tenant);
         $this->tenantUser->refresh();
         $this->assertTrue($this->tenantUser->hasRole('Admin'));
         $this->assertFalse($this->tenantUser->hasRole('Manager'));
@@ -409,10 +442,8 @@ class UpdateTenantUserTest extends TestCase
 
     public function test_update_user_can_add_new_roles(): void
     {
-        tenancy()->initialize($this->tenant);
-
-        $role1 = Role::create(['name' => 'Admin']);
-        $role2 = Role::create(['name' => 'Manager']);
+        $role1 = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $role2 = Role::create(['name' => 'Manager', 'tenant_id' => $this->tenant->id]);
 
         $this->tenantUser->assignRole($role1);
 
@@ -423,7 +454,10 @@ class UpdateTenantUserTest extends TestCase
         ];
 
         $this->actingAs($this->authenticatedUser)
-            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
+            ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData)
+            ->assertRedirect();
+
+        tenancy()->initialize($this->tenant);
 
         $this->assertTrue($this->tenantUser->hasRole($role1->name));
         $this->assertTrue($this->tenantUser->hasRole($role2->name));

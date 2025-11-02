@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Role;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +21,12 @@ class ShowRoleTest extends TestCase
         parent::setUp();
 
         $user = User::factory()->create();
+
+        $permission = Permission::create(['name' => CentralPermissions::VIEW_ROLE->value]);
+        $role = Role::create(['name' => 'Admin']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
+
         $this->actingAs($user);
     }
 
@@ -31,6 +39,18 @@ class ShowRoleTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs($this->route);
         $response->assertViewHas('role');
+    }
+
+    public function test_user_without_permission_cannot_view_role_details(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $this->actingAs($userWithoutPermission);
+
+        $role = Role::factory()->create(['name' => 'Test Role']);
+
+        $response = $this->get(route($this->route, $role));
+
+        $response->assertForbidden();
     }
 
     public function test_unauthenticated_user_cannot_view_role_details(): void

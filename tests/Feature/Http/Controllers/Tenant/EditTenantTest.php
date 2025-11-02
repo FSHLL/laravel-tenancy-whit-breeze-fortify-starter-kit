@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Tenant;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,6 +23,12 @@ class EditTenantTest extends TestCase
         // Crear y autenticar un usuario para todas las pruebas
         $user = User::factory()->create();
         $this->actingAs($user);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::UPDATE_TENANT->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
     }
 
     public function test_it_can_display_edit_tenant_page(): void
@@ -31,6 +40,17 @@ class EditTenantTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('tenants.edit');
         $response->assertViewHas('tenant');
+    }
+
+    public function test_user_without_permission_cannot_access_edit(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $tenant = Tenant::create(['id' => 'test-tenant']);
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route, $tenant));
+
+        $response->assertStatus(403);
     }
 
     public function test_it_displays_correct_page_title_with_tenant_id(): void

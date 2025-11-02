@@ -22,6 +22,11 @@ class StoreRoleTest extends TestCase
 
         $user = User::factory()->create();
         $this->seed(CentralPermissionsSeeder::class);
+
+        $role = Role::create(['name' => 'Admin']);
+        $role->givePermissionTo([CentralPermissions::CREATE_ROLE->value]);
+        $user->assignRole($role);
+
         $this->actingAs($user);
     }
 
@@ -45,6 +50,18 @@ class StoreRoleTest extends TestCase
 
         $role = Role::where('name', 'Test Role')->first();
         $this->assertEquals($permissions->count(), $role->permissions()->count());
+    }
+
+    public function test_user_without_permission_cannot_store_role(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $this->actingAs($userWithoutPermission);
+
+        $response = $this->post(route($this->route), [
+            'name' => 'Test Role',
+        ]);
+
+        $response->assertForbidden();
     }
 
     public function test_unauthenticated_user_cannot_create_role(): void

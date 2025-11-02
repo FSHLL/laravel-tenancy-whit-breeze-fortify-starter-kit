@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +27,12 @@ class IndexTenantUserTest extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->authenticatedUser = User::factory()->create();
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::VIEW_TENANT_USER->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_view_tenant_users_index(): void
@@ -42,6 +51,16 @@ class IndexTenantUserTest extends TestCase
             $response->assertSee($user->name);
             $response->assertSee($user->email);
         }
+    }
+
+    public function test_user_without_permission_cannot_access_index(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route, $this->tenant));
+
+        $response->assertStatus(403);
     }
 
     public function test_index_only_shows_users_from_specific_tenant(): void

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -27,6 +29,12 @@ class StoreTenantUserTest extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->authenticatedUser = User::factory()->create();
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::CREATE_TENANT_USER->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_create_new_tenant_user(): void
@@ -52,6 +60,26 @@ class StoreTenantUserTest extends TestCase
         $this->assertTrue(Hash::check($userData['password'], $user->password));
 
         $response->assertRedirect(route('tenants.users.show', [$this->tenant, $user]));
+    }
+
+    public function test_user_without_permission_cannot_store_tenant_user(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $userData = [
+            'name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->post(route($this->route, $this->tenant), $userData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('users', [
+            'email' => $userData['email'],
+        ]);
     }
 
     public function test_store_validates_required_fields(): void
@@ -222,10 +250,8 @@ class StoreTenantUserTest extends TestCase
 
     public function test_store_user_with_roles(): void
     {
-        tenancy()->initialize($this->tenant);
-
-        $role1 = Role::create(['name' => 'Admin']);
-        $role2 = Role::create(['name' => 'Manager']);
+        $role1 = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $role2 = Role::create(['name' => 'Manager', 'tenant_id' => $this->tenant->id]);
 
         $userData = [
             'name' => $this->faker->name,
@@ -236,9 +262,12 @@ class StoreTenantUserTest extends TestCase
         ];
 
         $this->actingAs($this->authenticatedUser)
-            ->post(route($this->route, $this->tenant), $userData);
+            ->post(route($this->route, $this->tenant), $userData)
+            ->assertRedirect();
 
-        $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
+        tenancy()->initialize($this->tenant);
+
+        $user = User::where('email', $userData['email'])->first();
         $this->assertTrue($user->hasRole($role1->name));
         $this->assertTrue($user->hasRole($role2->name));
     }
@@ -261,9 +290,7 @@ class StoreTenantUserTest extends TestCase
 
     public function test_store_user_with_single_role(): void
     {
-        tenancy()->initialize($this->tenant);
-
-        $role = Role::create(['name' => 'User']);
+        $role = Role::create(['name' => 'User', 'tenant_id' => $this->tenant->id]);
 
         $userData = [
             'name' => $this->faker->name,
@@ -276,7 +303,8 @@ class StoreTenantUserTest extends TestCase
         $this->actingAs($this->authenticatedUser)
             ->post(route($this->route, $this->tenant), $userData);
 
-        $user = User::withoutCentralApp()->where('email', $userData['email'])->first();
+        tenancy()->initialize($this->tenant);
+        $user = User::where('email', $userData['email'])->first();
         $this->assertTrue($user->hasRole($role->name));
         $this->assertCount(1, $user->roles);
     }

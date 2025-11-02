@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Enums\Permissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -32,6 +34,12 @@ class CreateUserTest extends TestCase
         $this->authenticatedUser = User::factory()->create();
 
         $this->route = "http://{$this->tenant->id}.localhost/users/create";
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => Permissions::CREATE_TENANT_USER_BY_TENANT->value, 'tenant_id' => $this->tenant->id]);
+        $role = Role::create(['name' => 'Test Role', 'tenant_id' => $this->tenant->id]);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_access_create_user_page(): void
@@ -40,6 +48,15 @@ class CreateUserTest extends TestCase
             ->get($this->route)
             ->assertOk()
             ->assertViewIs('users.create');
+    }
+
+    public function test_user_without_permission_cannot_access_create(): void
+    {
+        $userWithoutPermission = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        $this->actingAs($userWithoutPermission)
+            ->get($this->route)
+            ->assertStatus(403);
     }
 
     public function test_unauthenticated_user_cannot_access_create_user_page(): void
@@ -132,6 +149,8 @@ class CreateUserTest extends TestCase
 
     public function test_create_user_page_handles_no_roles_available(): void
     {
+        Role::where('tenant_id', $this->tenant->id)->delete();
+        $this->authenticatedUser->syncPermissions([Permissions::CREATE_TENANT_USER_BY_TENANT->value]);
         $this->actingAs($this->authenticatedUser)
             ->get($this->route)
             ->assertOk()

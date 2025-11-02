@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Tenant;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +22,12 @@ class ShowTenantTest extends TestCase
 
         $user = User::factory()->create();
         $this->actingAs($user);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::VIEW_TENANT->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
     }
 
     public function test_it_can_display_tenant_details_page(): void
@@ -30,6 +39,17 @@ class ShowTenantTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('tenants.show');
         $response->assertViewHas('tenant');
+    }
+
+    public function test_user_without_permission_cannot_view_tenant(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $tenant = Tenant::create(['id' => 'test-tenant']);
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route, $tenant));
+
+        $response->assertStatus(403);
     }
 
     public function test_it_displays_basic_tenant_information(): void

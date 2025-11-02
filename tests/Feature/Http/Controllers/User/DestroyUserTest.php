@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Enums\Permissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,12 +36,20 @@ class DestroyUserTest extends TestCase
 
         $this->authenticatedUser = User::factory()->create([
             'password' => Hash::make('current-password'),
+            'tenant_id' => $this->tenant->id,
         ]);
 
         $this->targetUser = User::factory()->create([
             'name' => 'User To Delete',
             'email' => 'delete@example.com',
+            'tenant_id' => $this->tenant->id,
         ]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => Permissions::DELETE_TENANT_USER_BY_TENANT->value, 'tenant_id' => $this->tenant->id]);
+        $role = Role::create(['name' => 'Test Role', 'tenant_id' => $this->tenant->id]);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
 
         $this->route = "http://{$this->tenant->id}.localhost/users/{$this->targetUser->id}";
     }
@@ -56,6 +67,24 @@ class DestroyUserTest extends TestCase
 
         $response->assertRedirect(route('users.index'))
             ->assertSessionHas('success', 'User deleted successfully.');
+    }
+
+    public function test_user_without_permission_cannot_delete_user(): void
+    {
+        $userWithoutPermission = User::factory()->create([
+            'password' => Hash::make('current-password'),
+            'tenant_id' => $this->tenant->id,
+        ]);
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->delete($this->route, [
+                'password' => 'current-password',
+            ]);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', [
+            'id' => $this->targetUser->id,
+        ]);
     }
 
     public function test_unauthenticated_user_cannot_delete_user(): void
@@ -201,6 +230,8 @@ class DestroyUserTest extends TestCase
         $anotherUser = User::factory()->create([
             'password' => Hash::make('another-password'),
         ]);
+
+        $anotherUser->syncPermissions([Permissions::DELETE_TENANT_USER_BY_TENANT->value]);
 
         $this->actingAs($anotherUser)
             ->delete($this->route, [

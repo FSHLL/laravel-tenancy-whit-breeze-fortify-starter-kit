@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Tenant;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +22,12 @@ class StoreTenantTest extends TestCase
 
         $user = User::factory()->create();
         $this->actingAs($user);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::CREATE_TENANT->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
     }
 
     public function test_it_can_create_a_tenant_with_valid_data(): void
@@ -33,6 +42,22 @@ class StoreTenantTest extends TestCase
         $response->assertRedirect(route('tenants.index'));
         $this->assertDatabaseHas('tenants', ['id' => 'test-tenant']);
         $this->assertDatabaseHas('domains', ['domain' => 'test.example.com']);
+    }
+
+    public function test_user_without_permission_cannot_store_tenant(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $tenantData = [
+            'id' => 'test-tenant',
+            'domains' => ['test.example.com'],
+        ];
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->post(route($this->route), $tenantData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('tenants', ['id' => 'test-tenant']);
     }
 
     public function test_it_can_create_tenant_with_multiple_domains(): void

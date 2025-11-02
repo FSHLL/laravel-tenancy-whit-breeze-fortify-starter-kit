@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Role;
 
 use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\CentralPermissionsSeeder;
@@ -21,6 +22,12 @@ class DestroyRoleTest extends TestCase
         parent::setUp();
 
         $user = User::factory()->create();
+
+        $permission = Permission::create(['name' => CentralPermissions::DELETE_ROLE->value]);
+        $role = Role::create(['name' => 'Admin']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
+
         $this->actingAs($user);
     }
 
@@ -35,6 +42,18 @@ class DestroyRoleTest extends TestCase
         $this->assertDatabaseMissing('roles', [
             'id' => $role->id,
         ]);
+    }
+
+    public function test_user_without_permission_cannot_delete_role(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $this->actingAs($userWithoutPermission);
+
+        $role = Role::factory()->create(['name' => 'Test Role']);
+
+        $response = $this->delete(route($this->route, $role));
+
+        $response->assertForbidden();
     }
 
     public function test_unauthenticated_user_cannot_delete_role(): void

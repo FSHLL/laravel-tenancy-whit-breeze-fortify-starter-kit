@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Role;
 
 use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\CentralPermissionsSeeder;
@@ -21,6 +22,12 @@ class EditRoleTest extends TestCase
         parent::setUp();
 
         $user = User::factory()->create();
+
+        $permission = Permission::create(['name' => CentralPermissions::UPDATE_ROLE->value]);
+        $role = Role::create(['name' => 'Admin']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
+
         $this->actingAs($user);
     }
 
@@ -32,6 +39,18 @@ class EditRoleTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('roles.edit');
+    }
+
+    public function test_user_without_permission_cannot_access_edit_role_page(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $this->actingAs($userWithoutPermission);
+
+        $role = Role::factory()->create();
+
+        $response = $this->get(route($this->route, $role));
+
+        $response->assertForbidden();
     }
 
     public function test_unauthenticated_user_cannot_access_edit_role_page(): void

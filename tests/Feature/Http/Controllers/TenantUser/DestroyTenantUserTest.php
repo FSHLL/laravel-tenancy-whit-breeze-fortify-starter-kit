@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,6 +31,12 @@ class DestroyTenantUserTest extends TestCase
         $this->tenant = Tenant::factory()->create();
         $this->authenticatedUser = User::factory()->create();
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::DELETE_TENANT_USER->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_delete_tenant_user_with_valid_password(): void
@@ -42,6 +51,21 @@ class DestroyTenantUserTest extends TestCase
 
         $response->assertRedirect(route('tenants.users.index', $this->tenant));
         $this->assertDatabaseMissing('users', ['id' => $this->tenantUser->id]);
+    }
+
+    public function test_user_without_permission_cannot_delete_tenant_user(): void
+    {
+        $userWithoutPermission = User::factory()->create([
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->delete(route($this->route, [$this->tenant, $this->tenantUser]), [
+                'password' => 'password123',
+            ]);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['id' => $this->tenantUser->id]);
     }
 
     public function test_delete_fails_with_invalid_password(): void

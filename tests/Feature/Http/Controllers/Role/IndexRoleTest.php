@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Role;
 
 use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\CentralPermissionsSeeder;
@@ -16,12 +17,20 @@ class IndexRoleTest extends TestCase
 
     private string $route = 'roles.index';
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::VIEW_ROLE->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->user->assignRole($role);
     }
 
     public function test_authenticated_user_can_view_roles_index(): void
@@ -30,6 +39,16 @@ class IndexRoleTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs($this->route);
+    }
+
+    public function test_user_without_permission_cannot_access_index(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route));
+
+        $response->assertStatus(403);
     }
 
     public function test_unauthenticated_user_cannot_view_roles_index(): void
@@ -56,6 +75,8 @@ class IndexRoleTest extends TestCase
 
     public function test_roles_index_displays_empty_state_when_no_roles(): void
     {
+        Role::truncate();
+        $this->user->syncPermissions([CentralPermissions::VIEW_ROLE->value]);
         $response = $this->get(route($this->route));
 
         $response->assertStatus(200);
@@ -97,7 +118,7 @@ class IndexRoleTest extends TestCase
 
         $response->assertStatus(200);
         $roles = $response->viewData('roles');
-        $this->assertEquals(3, $roles->first()->users_count);
+        $this->assertEquals(3, $roles->last()->users_count);
     }
 
     public function test_roles_index_displays_correct_page_title(): void
@@ -118,6 +139,6 @@ class IndexRoleTest extends TestCase
         $response->assertStatus(200);
         $roles = $response->viewData('roles');
         $this->assertCount(15, $roles->items()); // Default pagination
-        $this->assertEquals(50, $roles->total());
+        $this->assertEquals(51, $roles->total());
     }
 }

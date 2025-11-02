@@ -22,6 +22,11 @@ class UpdateRoleTest extends TestCase
 
         $user = User::factory()->create();
         $this->seed(CentralPermissionsSeeder::class);
+
+        $role = Role::create(['name' => 'Admin']);
+        $role->givePermissionTo([CentralPermissions::UPDATE_ROLE->value]);
+        $user->assignRole($role);
+
         $this->actingAs($user);
     }
 
@@ -47,6 +52,20 @@ class UpdateRoleTest extends TestCase
 
         $role->refresh();
         $this->assertEquals(3, $role->permissions()->count());
+    }
+
+    public function test_user_without_permission_cannot_update_role(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+        $this->actingAs($userWithoutPermission);
+
+        $role = Role::factory()->create(['name' => 'Test Role']);
+
+        $response = $this->put(route($this->route, $role), [
+            'name' => 'Updated Role Name',
+        ]);
+
+        $response->assertForbidden();
     }
 
     public function test_unauthenticated_user_cannot_update_role(): void

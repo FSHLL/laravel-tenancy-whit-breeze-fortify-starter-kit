@@ -3,6 +3,7 @@
 namespace Tests\Feature\Console\Commands;
 
 use App\Models\User;
+use Database\Seeders\CentralPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,8 @@ class CreateCentralUserCommandTest extends TestCase
 
     public function test_command_can_create_central_user_with_options(): void
     {
+        $this->seed(CentralPermissionsSeeder::class);
+
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
         $password = 'SecurePassword123!';
@@ -40,6 +43,8 @@ class CreateCentralUserCommandTest extends TestCase
 
     public function test_command_can_create_central_user_with_interactive_input(): void
     {
+        $this->seed(CentralPermissionsSeeder::class);
+
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
         $password = 'SecurePassword123!';
@@ -196,6 +201,8 @@ class CreateCentralUserCommandTest extends TestCase
 
     public function test_command_converts_email_to_lowercase_when_configured(): void
     {
+        $this->seed(CentralPermissionsSeeder::class);
+
         config(['fortify.lowercase_usernames' => true]);
 
         $name = $this->faker->name;
@@ -219,6 +226,8 @@ class CreateCentralUserCommandTest extends TestCase
 
     public function test_command_preserves_email_case_when_not_configured(): void
     {
+        $this->seed(CentralPermissionsSeeder::class);
+
         config(['fortify.lowercase_usernames' => false]);
 
         $name = $this->faker->name;
@@ -242,6 +251,8 @@ class CreateCentralUserCommandTest extends TestCase
 
     public function test_command_creates_user_with_null_tenant_id(): void
     {
+        $this->seed(CentralPermissionsSeeder::class);
+
         $name = $this->faker->name;
         $email = $this->faker->unique()->safeEmail;
         $password = 'SecurePassword123!';
@@ -275,6 +286,8 @@ class CreateCentralUserCommandTest extends TestCase
 
     public function test_command_displays_success_message_with_user_details(): void
     {
+        $this->seed(CentralPermissionsSeeder::class);
+
         $name = 'John Doe';
         $email = 'john@example.com';
         $password = 'SecurePassword123!';

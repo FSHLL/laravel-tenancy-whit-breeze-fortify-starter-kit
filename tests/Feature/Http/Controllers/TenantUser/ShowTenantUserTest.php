@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Enums\CentralPermissions;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
@@ -29,6 +30,12 @@ class ShowTenantUserTest extends TestCase
         $this->tenant = Tenant::factory()->create();
         $this->authenticatedUser = User::factory()->create();
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::VIEW_TENANT_USER->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_view_tenant_user_details(): void
@@ -40,6 +47,16 @@ class ShowTenantUserTest extends TestCase
         $response->assertViewIs('tenants.users.show');
         $response->assertViewHas('tenant', $this->tenant);
         $response->assertViewHas('user', $this->tenantUser);
+    }
+
+    public function test_user_without_permission_cannot_view_tenant_user(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(403);
     }
 
     public function test_show_displays_user_information(): void

@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Tenant;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +25,12 @@ class UpdateTenantTest extends TestCase
         $this->user = User::factory()->create();
         $this->tenant = Tenant::create(['id' => 'test-tenant']);
         $this->tenant->domains()->create(['domain' => 'test.example.com']);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::UPDATE_TENANT->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->user->assignRole($role);
     }
 
     public function test_guest_cannot_update_tenant(): void
@@ -32,6 +41,19 @@ class UpdateTenantTest extends TestCase
         ]);
 
         $response->assertRedirect(route('login'));
+    }
+
+    public function test_user_without_permission_cannot_update_tenant(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->put(route('tenants.update', $this->tenant), [
+                'domains' => ['updated.example.com'],
+                'data' => json_encode(['name' => 'Updated Tenant']),
+            ]);
+
+        $response->assertStatus(403);
     }
 
     public function test_authenticated_user_can_update_tenant_successfully(): void

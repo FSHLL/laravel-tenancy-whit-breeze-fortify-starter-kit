@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Tenant;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,6 +31,12 @@ class DestroyTenantTest extends TestCase
 
         $this->tenant = Tenant::create(['id' => 'test-tenant']);
         $this->tenant->domains()->create(['domain' => 'test.example.com']);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::DELETE_TENANT->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->user->assignRole($role);
     }
 
     public function test_guest_cannot_destroy_tenant(): void
@@ -37,6 +46,21 @@ class DestroyTenantTest extends TestCase
         ]);
 
         $response->assertRedirect(route('login'));
+        $this->assertModelExists($this->tenant);
+    }
+
+    public function test_user_without_permission_cannot_destroy_tenant(): void
+    {
+        $userWithoutPermission = User::factory()->create([
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->delete(route($this->route, $this->tenant), [
+                'password' => 'password123',
+            ]);
+
+        $response->assertStatus(403);
         $this->assertModelExists($this->tenant);
     }
 
@@ -155,6 +179,8 @@ class DestroyTenantTest extends TestCase
             'password' => Hash::make('p@ssw0rd!#$%'),
         ]);
 
+        $userWithSpecialPassword->syncPermissions([CentralPermissions::DELETE_TENANT->value]);
+
         $response = $this->actingAs($userWithSpecialPassword)->delete(
             route($this->route, $this->tenant),
             ['password' => 'p@ssw0rd!#$%']
@@ -169,6 +195,8 @@ class DestroyTenantTest extends TestCase
         $userWithPassword = User::factory()->create([
             'password' => Hash::make('Password123'),
         ]);
+
+        $userWithPassword->syncPermissions([CentralPermissions::DELETE_TENANT->value]);
 
         $response = $this->actingAs($userWithPassword)->delete(
             route($this->route, $this->tenant),
@@ -215,6 +243,8 @@ class DestroyTenantTest extends TestCase
             'password' => Hash::make('123456789'),
         ]);
 
+        $userWithNumericPassword->syncPermissions([CentralPermissions::DELETE_TENANT->value]);
+
         $response = $this->actingAs($userWithNumericPassword)->delete(
             route($this->route, $this->tenant),
             ['password' => '123456789']
@@ -241,6 +271,8 @@ class DestroyTenantTest extends TestCase
         $userWithLongPassword = User::factory()->create([
             'password' => Hash::make($longPassword),
         ]);
+
+        $userWithLongPassword->syncPermissions([CentralPermissions::DELETE_TENANT->value]);
 
         $response = $this->actingAs($userWithLongPassword)->delete(
             route($this->route, $this->tenant),

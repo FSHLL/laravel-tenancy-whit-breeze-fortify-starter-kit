@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\TenantUser;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -28,6 +30,12 @@ class EditTenantUserTest extends TestCase
         $this->tenant = Tenant::factory()->create();
         $this->authenticatedUser = User::factory()->create();
         $this->tenantUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::UPDATE_TENANT_USER->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_view_edit_form(): void
@@ -39,6 +47,16 @@ class EditTenantUserTest extends TestCase
         $response->assertViewIs('tenants.users.edit');
         $response->assertViewHas('tenant', $this->tenant);
         $response->assertViewHas('user', $this->tenantUser);
+    }
+
+    public function test_user_without_permission_cannot_access_edit(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route, [$this->tenant, $this->tenantUser]));
+
+        $response->assertStatus(403);
     }
 
     public function test_edit_form_displays_with_existing_user_data(): void

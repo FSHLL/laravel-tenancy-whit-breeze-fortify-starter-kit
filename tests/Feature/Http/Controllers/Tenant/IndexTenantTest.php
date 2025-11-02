@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Tenant;
 
+use App\Enums\CentralPermissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +22,12 @@ class IndexTenantTest extends TestCase
 
         $user = User::factory()->create();
         $this->actingAs($user);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => CentralPermissions::VIEW_TENANT->value]);
+        $role = Role::create(['name' => 'Test Role']);
+        $role->givePermissionTo($permission);
+        $user->assignRole($role);
     }
 
     public function test_it_can_display_the_tenants_index_page(): void
@@ -28,6 +37,16 @@ class IndexTenantTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('tenants.index');
         $response->assertViewHas('tenants');
+    }
+
+    public function test_user_without_permission_cannot_access_index(): void
+    {
+        $userWithoutPermission = User::factory()->create();
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->get(route($this->route));
+
+        $response->assertStatus(403);
     }
 
     public function test_it_displays_empty_state_when_no_tenants_exist(): void

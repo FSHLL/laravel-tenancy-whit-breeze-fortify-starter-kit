@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Enums\Permissions;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,6 +34,12 @@ class IndexUserTest extends TestCase
         $this->route = "http://{$this->tenant->id}.localhost/users";
 
         $this->authenticatedUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => Permissions::VIEW_TENANT_USER_BY_TENANT->value, 'tenant_id' => $this->tenant->id]);
+        $role = Role::create(['name' => 'Test Role', 'tenant_id' => $this->tenant->id]);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
     }
 
     public function test_authenticated_user_can_access_users_index(): void
@@ -41,6 +50,15 @@ class IndexUserTest extends TestCase
             ->assertViewIs('users.index')
             ->assertSee(route('users.create'))
             ->assertViewHas('users');
+    }
+
+    public function test_user_without_permission_cannot_access_index(): void
+    {
+        $userWithoutPermission = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        $this->actingAs($userWithoutPermission)
+            ->get($this->route)
+            ->assertStatus(403);
     }
 
     public function test_unauthenticated_user_cannot_access_users_index(): void

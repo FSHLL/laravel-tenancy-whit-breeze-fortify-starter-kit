@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Enums\Permissions;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
@@ -32,12 +33,19 @@ class ShowUserTest extends TestCase
 
         $this->tenant->domains()->create(['domain' => $this->tenant->id]);
 
-        $this->authenticatedUser = User::factory()->create();
+        $this->authenticatedUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
         $this->targetUser = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
             'email_verified_at' => now(),
+            'tenant_id' => $this->tenant->id,
         ]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => Permissions::VIEW_TENANT_USER_BY_TENANT->value, 'tenant_id' => $this->tenant->id]);
+        $role = Role::create(['name' => 'Test Role', 'tenant_id' => $this->tenant->id]);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
 
         $this->route = "http://{$this->tenant->id}.localhost/users/{$this->targetUser->id}";
     }
@@ -49,6 +57,15 @@ class ShowUserTest extends TestCase
             ->assertOk()
             ->assertViewIs('users.show')
             ->assertViewHas('user', $this->targetUser);
+    }
+
+    public function test_user_without_permission_cannot_view_user_details(): void
+    {
+        $userWithoutPermission = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        $this->actingAs($userWithoutPermission)
+            ->get($this->route)
+            ->assertStatus(403);
     }
 
     public function test_unauthenticated_user_cannot_view_user_details(): void

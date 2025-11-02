@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\User;
 
+use App\Enums\Permissions;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -32,13 +34,20 @@ class UpdateUserTest extends TestCase
 
         $this->tenant->domains()->create(['domain' => $this->tenant->id]);
 
-        $this->authenticatedUser = User::factory()->create();
+        $this->authenticatedUser = User::factory()->create(['tenant_id' => $this->tenant->id]);
         $this->targetUser = User::factory()->create([
             'name' => 'Original Name',
             'email' => 'original@example.com',
             'email_verified_at' => now(),
             'password' => Hash::make('original-password'),
+            'tenant_id' => $this->tenant->id,
         ]);
+
+        // Create permission and assign to user
+        $permission = Permission::create(['name' => Permissions::UPDATE_TENANT_USER_BY_TENANT->value, 'tenant_id' => $this->tenant->id]);
+        $role = Role::create(['name' => 'Test Role', 'tenant_id' => $this->tenant->id]);
+        $role->givePermissionTo($permission);
+        $this->authenticatedUser->assignRole($role);
 
         $this->route = "http://{$this->tenant->id}.localhost/users/{$this->targetUser->id}";
     }
@@ -61,6 +70,26 @@ class UpdateUserTest extends TestCase
 
         $response->assertRedirect(route('users.show', $this->targetUser))
             ->assertSessionHas('success', 'User updated successfully.');
+    }
+
+    public function test_user_without_permission_cannot_update_user(): void
+    {
+        $userWithoutPermission = User::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        $updateData = [
+            'name' => 'Updated Name',
+            'email' => 'updated@example.com',
+        ];
+
+        $response = $this->actingAs($userWithoutPermission)
+            ->put($this->route, $updateData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', [
+            'id' => $this->targetUser->id,
+            'name' => 'Original Name',
+            'email' => 'original@example.com',
+        ]);
     }
 
     public function test_unauthenticated_user_cannot_update_user(): void
