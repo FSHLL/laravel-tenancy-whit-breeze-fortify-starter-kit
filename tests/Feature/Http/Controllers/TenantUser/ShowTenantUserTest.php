@@ -191,34 +191,34 @@ class ShowTenantUserTest extends TestCase
 
     public function test_show_displays_roles_section(): void
     {
-        $role = Role::create(['name' => 'Admin']);
-        $this->tenantUser->assignRole('Admin');
+        $role = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $this->tenantUser->assignRole($role);
 
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
 
         $response->assertStatus(200);
         $response->assertSee('Roles & Permissions');
-        $response->assertSee('Admin');
+        $response->assertSee($role->name);
     }
 
     public function test_show_displays_role_permissions(): void
     {
-        $permission1 = Permission::create(['name' => 'view users']);
-        $permission2 = Permission::create(['name' => 'edit users']);
+        $permission1 = Permission::create(['name' => 'view users', 'tenant_id' => $this->tenant->id]);
+        $permission2 = Permission::create(['name' => 'edit users', 'tenant_id' => $this->tenant->id]);
 
-        $role = Role::create(['name' => 'Admin']);
+        $role = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
         $role->givePermissionTo([$permission1, $permission2]);
 
-        $this->tenantUser->assignRole('Admin');
+        $this->tenantUser->assignRole($role);
 
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
 
         $response->assertStatus(200);
-        $response->assertSee('Admin');
-        $response->assertSee('view users');
-        $response->assertSee('edit users');
+        $response->assertSee($role->name);
+        $response->assertSee($permission1->name);
+        $response->assertSee($permission2->name);
         $response->assertSee('2 permissions');
     }
 
@@ -235,16 +235,16 @@ class ShowTenantUserTest extends TestCase
 
     public function test_show_displays_multiple_roles(): void
     {
-        $role1 = Role::create(['name' => 'Admin']);
-        $role2 = Role::create(['name' => 'Manager']);
+        $role1 = Role::create(['name' => 'Admin', 'tenant_id' => $this->tenant->id]);
+        $role2 = Role::create(['name' => 'Manager', 'tenant_id' => $this->tenant->id]);
 
-        $this->tenantUser->assignRole(['Admin', 'Manager']);
+        $this->tenantUser->assignRole([$role1, $role2]);
 
         $response = $this->actingAs($this->authenticatedUser)
             ->get(route($this->route, [$this->tenant, $this->tenantUser]));
 
         $response->assertStatus(200);
-        $response->assertSee('Admin');
-        $response->assertSee('Manager');
+        $response->assertSee($role1->name);
+        $response->assertSee($role2->name);
     }
 }

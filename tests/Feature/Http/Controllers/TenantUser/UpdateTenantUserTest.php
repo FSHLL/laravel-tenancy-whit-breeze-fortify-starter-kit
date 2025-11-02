@@ -348,6 +348,8 @@ class UpdateTenantUserTest extends TestCase
 
     public function test_update_user_with_roles(): void
     {
+        tenancy()->initialize($this->tenant);
+
         $role1 = Role::create(['name' => 'Admin']);
         $role2 = Role::create(['name' => 'Manager']);
 
@@ -360,13 +362,14 @@ class UpdateTenantUserTest extends TestCase
         $this->actingAs($this->authenticatedUser)
             ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
 
-        $this->tenantUser->refresh();
         $this->assertTrue($this->tenantUser->hasRole($role1->name));
         $this->assertTrue($this->tenantUser->hasRole($role2->name));
     }
 
     public function test_update_user_removes_unchecked_roles(): void
     {
+        tenancy()->initialize($this->tenant);
+
         $role1 = Role::create(['name' => 'Admin']);
         $role2 = Role::create(['name' => 'Manager']);
 
@@ -406,6 +409,8 @@ class UpdateTenantUserTest extends TestCase
 
     public function test_update_user_can_add_new_roles(): void
     {
+        tenancy()->initialize($this->tenant);
+
         $role1 = Role::create(['name' => 'Admin']);
         $role2 = Role::create(['name' => 'Manager']);
 
@@ -420,7 +425,6 @@ class UpdateTenantUserTest extends TestCase
         $this->actingAs($this->authenticatedUser)
             ->put(route($this->route, [$this->tenant, $this->tenantUser]), $updateData);
 
-        $this->tenantUser->refresh();
         $this->assertTrue($this->tenantUser->hasRole($role1->name));
         $this->assertTrue($this->tenantUser->hasRole($role2->name));
         $this->assertCount(2, $this->tenantUser->roles);
