@@ -38,17 +38,19 @@ class TenantUserController extends Controller
             'tenant_id' => $tenant->id,
         ]);
 
-        $user->syncRoles($request->input('roles', []));
+        $tenant->run(function () use ($user, $request) {
+            $user->syncRoles($request->input('roles', []));
+        });
 
         return redirect()->route('tenants.users.show', [$tenant, $user]);
     }
 
     public function show(Tenant $tenant, int $userId): View
     {
-        $user = User::withoutCentralApp()
-            ->where('tenant_id', $tenant->id)
-            ->with(['roles.permissions'])
-            ->findOrFail($userId);
+        $user = $tenant->run(function () use ($userId) {
+            return User::with(['roles.permissions'])
+                ->findOrFail($userId);
+        });
 
         return view('tenants.users.show', [
             'tenant' => $tenant,
@@ -58,12 +60,15 @@ class TenantUserController extends Controller
 
     public function edit(Tenant $tenant, int $userId): View
     {
-        $user = User::withoutCentralApp()
-            ->where('tenant_id', $tenant->id)
-            ->with('roles')
-            ->findOrFail($userId);
-
-        $roles = Role::withoutCentralApp()->where('tenant_id', $tenant->id)->get();
+        [$user, $roles] = $tenant->run(function () use ($tenant, $userId) {
+            return [
+                User::withoutCentralApp()
+                    ->where('tenant_id', $tenant->id)
+                    ->with('roles')
+                    ->findOrFail($userId),
+                Role::all(),
+            ];
+        });
 
         return view('tenants.users.edit', [
             'tenant' => $tenant,
@@ -86,8 +91,10 @@ class TenantUserController extends Controller
             $data['email_verified_at'] = null;
         }
 
-        $user->update($data);
-        $user->syncRoles($request->input('roles', []));
+        $tenant->run(function () use ($user, $data, $request) {
+            $user->update($data);
+            $user->syncRoles($request->input('roles', []));
+        });
 
         return redirect()->route('tenants.users.show', [$tenant, $user])
             ->with('success', __('User updated successfully.'));

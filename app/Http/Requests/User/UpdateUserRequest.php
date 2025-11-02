@@ -23,7 +23,7 @@ class UpdateUserRequest extends StoreUserRequest
             ],
             'password' => ['nullable', ...Arr::except($this->passwordRules(), 0)],
             'roles' => ['sometimes', 'array'],
-            'roles.*' => [Rule::exists('roles', 'name')->where('tenant_id', tenant('id'))],
+            'roles.*' => [Rule::exists('roles', 'name')->where('tenant_id', $this->tenant?->id ?? tenant('id'))],
         ];
     }
 }
