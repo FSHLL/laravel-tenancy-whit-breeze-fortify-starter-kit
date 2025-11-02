@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Actions\Fortify\PasswordValidationRules;
+use App\Enums\CentralRoles;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
@@ -52,6 +53,8 @@ class CreateCentralUserCommand extends Command
             'password' => Hash::make($password),
             'tenant_id' => null,
         ]);
+
+        $user->syncRoles([CentralRoles::SUPER_ADMIN->value]);
 
         $this->info("Central user {$user->name} created successfully with ID: {$user->id}");
 

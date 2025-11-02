@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Enums\CentralPermissions;
+use App\Enums\CentralRoles;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -16,5 +18,7 @@ class CentralPermissionsSeeder extends Seeder
         foreach (CentralPermissions::cases() as $permission) {
             Permission::firstOrCreate(['name' => $permission->value]);
         }
+
+        Role::findOrCreate(CentralRoles::SUPER_ADMIN->value)->givePermissionTo(Permission::all());
     }
 }
