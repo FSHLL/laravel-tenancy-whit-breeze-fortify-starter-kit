@@ -38,7 +38,7 @@ class TenantUserController extends Controller implements HasMiddleware
 
     public function create(Tenant $tenant): View
     {
-        $roles = Role::withoutCentralApp()->where('tenant_id', $tenant->id)->get();
+        $roles = $tenant->run(fn () => Role::with('permissions')->get());
 
         return view('tenants.users.create', compact('tenant', 'roles'));
     }
@@ -78,9 +78,9 @@ class TenantUserController extends Controller implements HasMiddleware
             return [
                 User::withoutCentralApp()
                     ->where('tenant_id', $tenant->id)
-                    ->with('roles')
+                    ->with('roles', 'roles.permissions')
                     ->findOrFail($userId),
-                Role::all(),
+                Role::with('permissions')->get(),
             ];
         });
 
