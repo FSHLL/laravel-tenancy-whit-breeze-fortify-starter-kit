@@ -28,7 +28,7 @@ This starter kit is a fully configured Laravel application that combines multi-t
 
 This repository contains multiple branches with different feature sets. Choose the branch that best fits your project needs:
 
-### 🌿 `main` (Base)
+### 🌿 [`main` (Base)](https://github.com/FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit)
 The base branch contains the core multi-tenancy setup with authentication:
 - Laravel 12 with multi-tenancy (Stancl/Tenancy)
 - Laravel Fortify authentication
@@ -36,7 +36,7 @@ The base branch contains the core multi-tenancy setup with authentication:
 - Laravel Breeze UI
 - Basic tenant isolation
 
-### 🌿 `feature/tenant-and-user-management`
+### 🌿 [`feature/tenant-and-user-management`](https://github.com/FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit/tree/feature/tenant-and-user-management)
 Builds on `main` by adding comprehensive management interfaces:
 - ✅ **Tenant Management**: Complete CRUD interface for managing tenants from central app
 - ✅ **User Management**: Manage users across all tenants from central app
@@ -47,7 +47,7 @@ Builds on `main` by adding comprehensive management interfaces:
 
 **Use this branch if you need:** Admin interfaces to manage tenants and users centrally without role-based access control.
 
-### 🌿 `feature/tenant-user-management-and-permissions` (Recommended)
+### 🌿 [`feature/tenant-user-management-and-permissions` (Recommended)](https://github.com/FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit/tree/feature/tenant-user-management-and-permissions)
 Builds on `feature/tenant-and-user-management` by adding a complete role and permission system:
 - ✅ All features from `feature/tenant-and-user-management`
 - ✅ **Spatie Laravel Permission**: Full RBAC implementation
@@ -141,19 +141,48 @@ php artisan db:seed --class=CentralPermissionsSeeder  # Only for permissions bra
 
 ## Installation
 
-### 1. Clone the repository
+You have multiple options to install this starter kit:
+
+### Option 1: Using Laravel Installer (Recommended) ⭐
+
 ```bash
-git clone https://github.com/your-username/tenancy-fortify-app.git
-cd tenancy-fortify-app
+# Install using Laravel installer with the branch you need
+laravel new my-saas-app --using=FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit
+
+# Or specify a specific branch
+laravel new my-saas-app --using=FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit:feature/tenant-user-management-and-permissions
 ```
 
-### 2. Install dependencies
+### Option 2: Using Composer Create-Project
+
 ```bash
+# Create project from main branch
+composer create-project FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit my-saas-app
+
+# Or from a specific branch
+composer create-project FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit:dev-feature/tenant-user-management-and-permissions my-saas-app
+```
+
+### Option 3: Clone from GitHub
+
+```bash
+# Clone the repository
+git clone https://github.com/FSHLL/laravel-tenancy-whit-breeze-fortify-starter-kit.git my-saas-app
+cd my-saas-app
+
+# Switch to desired branch (optional)
+git checkout feature/tenant-user-management-and-permissions
+
+# Install dependencies
 composer install
 npm install
 ```
 
-### 3. Configure environment
+---
+
+After installation using any of the options above, continue with the following steps:
+
+### 1. Configure environment
 ```bash
 cp .env.example .env
 php artisan key:generate
@@ -170,22 +199,33 @@ DB_USERNAME=your_username
 DB_PASSWORD=your_password
 ```
 
-### 5. Run migrations
+### 3. Run migrations
 ```bash
 php artisan migrate
 ```
 
-### 6. Compile assets
+### 4. Seed permissions (only for permissions branch)
+```bash
+# Only if using feature/tenant-user-management-and-permissions branch
+php artisan db:seed --class=CentralPermissionsSeeder
+
+# Create your first super admin user
+php artisan app:create-central-user
+```
+
+### 5. Compile assets
 ```bash
 npm run dev
 # or for production
 npm run build
 ```
 
-### 7. Start the server
+### 6. Start the server
 ```bash
 php artisan serve
 ```
+
+Your application will be available at `http://localhost:8000`
 
 ## Multi-Tenancy Configuration
 
