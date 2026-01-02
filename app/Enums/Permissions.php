@@ -13,4 +13,22 @@ enum Permissions: string
     case VIEW_ROLE_BY_TENANT = 'view role by tenant';
     case UPDATE_ROLE_BY_TENANT = 'update role by tenant';
     case DELETE_ROLE_BY_TENANT = 'delete role by tenant';
+
+    public static function byRole(Roles $role): array
+    {
+        return match ($role) {
+            Roles::ADMIN => [
+                self::CREATE_TENANT_USER_BY_TENANT,
+                self::VIEW_TENANT_USER_BY_TENANT,
+                self::UPDATE_TENANT_USER_BY_TENANT,
+                self::DELETE_TENANT_USER_BY_TENANT,
+
+                self::CREATE_ROLE_BY_TENANT,
+                self::VIEW_ROLE_BY_TENANT,
+                self::UPDATE_ROLE_BY_TENANT,
+                self::DELETE_ROLE_BY_TENANT,
+            ],
+            default => [],
+        };
+    }
 }

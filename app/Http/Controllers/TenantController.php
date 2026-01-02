@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Enums\CentralPermissions;
 use App\Enums\Permissions;
+use App\Enums\Roles;
 use App\Http\Requests\Tenant\StoreTenantRequest;
 use App\Http\Requests\Tenant\UpdateTenantRequest;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -53,9 +56,16 @@ class TenantController extends Controller implements HasMiddleware
                 ->map(fn ($domain) => ['domain' => $domain])
         );
 
-        foreach (Permissions::cases() as $permission) {
-            Permission::create(['name' => $permission->value, 'tenant_id' => $tenant->id]);
-        }
+        $tenant->run(function () {
+            foreach (Permissions::cases() as $permission) {
+                Permission::create(['name' => $permission->value]);
+            }
+
+            foreach (Roles::cases() as $roleEnum) {
+                $role = Role::create(['name' => $roleEnum->value]);
+                $role->syncPermissions(Permission::whereIn('name', Permissions::byRole($roleEnum))->get());
+            }
+        });
 
         return redirect()->intended(route('tenants.index'));
     }
@@ -96,6 +106,10 @@ class TenantController extends Controller implements HasMiddleware
         $request->validateWithBag($tenant->id, [
             'password' => ['required', 'current_password'],
         ]);
+
+        Permission::withoutCentralApp()->where('tenant_id', $tenant->id)->delete();
+        Role::withoutCentralApp()->where('tenant_id', $tenant->id)->delete();
+        User::withoutCentralApp()->where('tenant_id', $tenant->id)->delete();
 
         $tenant->delete();
 
