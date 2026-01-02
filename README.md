@@ -9,6 +9,7 @@
 <a href="https://packagist.org/packages/stancl/tenancy"><img src="https://img.shields.io/packagist/v/stancl/tenancy" alt="Tenancy Version"></a>
 <a href="https://packagist.org/packages/laravel/fortify"><img src="https://img.shields.io/packagist/v/laravel/fortify" alt="Fortify Version"></a>
 <a href="https://packagist.org/packages/laravel/breeze"><img src="https://img.shields.io/packagist/v/laravel/breeze" alt="Breeze Version"></a>
+<a href="https://packagist.org/packages/spatie/laravel-permission"><img src="https://img.shields.io/packagist/v/spatie/laravel-permission" alt="Laravel Permission Version"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
@@ -18,6 +19,7 @@ This starter kit is a fully configured Laravel application that combines multi-t
 
 - 🏢 **Complete multi-tenancy** with Laravel Tenancy
 - 🔐 **Advanced authentication** with Laravel Fortify
+- �️ **Roles & Permissions** with Spatie Laravel Permission
 - 📱 **Two-factor authentication (2FA)** 
 - 🎨 **Modern UI** with Laravel Breeze and Tailwind CSS
 - 🔧 **Development tools** with Laravel Telescope and Debugbar
@@ -40,6 +42,15 @@ This starter kit is a fully configured Laravel application that combines multi-t
 - **Central user management** with dedicated commands
 - **Tenant-specific user isolation** and management
 - Brute force attack protection
+
+### 🛡️ Roles & Permissions System
+- **Spatie Laravel Permission** for role-based access control (RBAC)
+- **Central Permissions**: Manage tenant and user operations from central app
+- **Tenant Permissions**: Scoped permissions per tenant for granular control
+- **Enum-based Permissions**: Type-safe permission definitions
+- **Automatic Permission Seeding**: Auto-create permissions and roles per tenant
+- **Middleware Protection**: Route-level permission enforcement
+- **Flexible Role Assignment**: Assign multiple roles and permissions to users
 
 ### 🎨 User Interface
 - **Laravel Breeze** for authentication views
@@ -97,7 +108,18 @@ DB_PASSWORD=your_password
 php artisan migrate
 ```
 
-### 6. Compile assets
+### 6. Seed permissions and roles
+```bash
+# Seed central permissions and roles
+php artisan db:seed --class=CentralPermissionsSeeder
+
+# Create a super admin user (will have all central permissions)
+php artisan app:create-central-user
+
+# Note: Tenant permissions are automatically created when a tenant is created
+```
+
+### 7. Compile assets
 ```bash
 npm run dev
 # or for production
@@ -146,8 +168,115 @@ Advanced user management system with both central and tenant-specific capabiliti
 - **Security**: Password confirmation for user deletion
 - **User Search**: Easy user lookup and management
 - **Responsive Design**: Mobile-friendly user management interface
+### 🛡️ Roles & Permissions Management
+This starter kit includes a comprehensive role-based access control (RBAC) system using **Spatie Laravel Permission**:
 
-### 7. Start the server
+#### Central Permissions (Central App)
+Permissions for managing the central application and tenant operations:
+
+```php
+// CentralPermissions Enum
+CREATE_TENANT    // Create new tenants
+VIEW_TENANT      // View tenant information
+UPDATE_TENANT    // Update tenant details
+DELETE_TENANT    // Delete tenants
+
+CREATE_TENANT_USER  // Create users for any tenant
+VIEW_TENANT_USER    // View users from any tenant
+UPDATE_TENANT_USER  // Update users from any tenant
+DELETE_TENANT_USER  // Delete users from any tenant
+
+CREATE_ROLE      // Create roles
+VIEW_ROLE        // View roles
+UPDATE_ROLE      // Update roles
+DELETE_ROLE      // Delete roles
+```
+
+#### Central Roles
+```php
+// CentralRoles Enum
+SUPER_ADMIN      // Has all central permissions
+```
+
+#### Tenant Permissions (Per Tenant)
+Scoped permissions for operations within a specific tenant:
+
+```php
+// Permissions Enum (Tenant-scoped)
+VIEW_TENANT_USER_BY_TENANT
+CREATE_TENANT_USER_BY_TENANT
+UPDATE_TENANT_USER_BY_TENANT
+DELETE_TENANT_USER_BY_TENANT
+
+VIEW_ROLE_BY_TENANT
+CREATE_ROLE_BY_TENANT
+UPDATE_ROLE_BY_TENANT
+DELETE_ROLE_BY_TENANT
+```
+
+#### Tenant Roles
+```php
+// Roles Enum (Tenant-scoped)
+ADMIN            // Tenant administrator with all tenant permissions
+USER             // Regular tenant user with limited permissions
+```
+
+#### Permission Features:
+- **Automatic Seeding**: Permissions and roles are automatically created when a tenant is created
+- **Middleware Protection**: All controllers use permission middleware for route protection
+- **Type-Safe Enums**: Permissions defined as PHP enums for type safety and IDE support
+- **Scope Isolation**: Tenant permissions are isolated per tenant using `tenant_id`
+- **Flexible Assignment**: Assign roles and permissions to users dynamically
+- **Role Hierarchies**: Define role hierarchies with specific permission sets
+
+#### Using Permissions in Code:
+
+```php
+// Check if user has permission
+if (auth()->user()->can(CentralPermissions::CREATE_TENANT->value)) {
+    // User can create tenants
+}
+
+// Check tenant-scoped permission
+$tenant->run(function () {
+    if (auth()->user()->can(Permissions::CREATE_TENANT_USER_BY_TENANT->value)) {
+        // User can create users in this tenant
+    }
+});
+
+// Assign role to user
+$user->assignRole(CentralRoles::SUPER_ADMIN->value);
+
+// Assign permission directly
+$user->givePermissionTo(CentralPermissions::VIEW_TENANT->value);
+
+// Check role
+if ($user->hasRole(CentralRoles::SUPER_ADMIN->value)) {
+    // User is super admin
+}
+```
+
+#### Middleware Usage:
+
+```php
+// Protect routes with permissions
+Route::middleware(['auth', 'permission:' . CentralPermissions::CREATE_TENANT->value])
+    ->group(function () {
+        // Protected routes
+    });
+
+// Controller middleware (already implemented)
+public static function middleware(): array
+{
+    return [
+        new Middleware(
+            PermissionMiddleware::using(CentralPermissions::VIEW_TENANT),
+            only: ['index', 'show']
+        ),
+    ];
+}
+```
+### 8. Start the server
 ```bash
 php artisan serve
 ```
@@ -217,6 +346,15 @@ php artisan tenants:run "cache:clear"
 php artisan tenants:list
 ```
 
+### Roles & Permissions
+```bash
+# Seed central permissions and roles
+php artisan db:seed --class=CentralPermissionsSeeder
+
+# Seed permissions for all existing tenants
+php artisan db:seed --class=PermissionsSeeder   
+```
+
 ### Fortify
 ```bash
 # Publish Fortify views
@@ -244,12 +382,21 @@ php artisan test
 ├── app/
 │   ├── Http/Controllers/
 │   │   ├── TenantController.php        # Central tenant management
-│   │   └── TenantUserController.php    # Tenant-specific user management
+│   │   ├── TenantUserController.php    # Tenant-specific user management
+│   │   ├── UserController.php          # Tenant user management (within tenant)
+│   │   └── RoleController.php          # Role management
 │   ├── Console/Commands/
 │   │   └── CreateCentralUserCommand.php # Central user creation command
+│   ├── Enums/
+│   │   ├── CentralPermissions.php      # Central app permissions enum
+│   │   ├── CentralRoles.php            # Central app roles enum
+│   │   ├── Permissions.php             # Tenant-scoped permissions enum
+│   │   └── Roles.php                   # Tenant-scoped roles enum
 │   ├── Models/
 │   │   ├── Tenant.php                  # Tenant model with domain relationships
-│   │   └── User.php                    # User model with 2FA and tenant scopes
+│   │   ├── User.php                    # User model with 2FA and tenant scopes
+│   │   ├── Role.php                    # Custom Role model (extends Spatie)
+│   │   └── Permission.php              # Custom Permission model (extends Spatie)
 │   ├── Http/Requests/
 │   │   ├── Tenant/                     # Tenant validation requests
 │   │   └── User/                       # User validation requests
@@ -260,9 +407,13 @@ php artisan test
 │   └── Actions/Fortify/                # Custom Fortify actions
 ├── config/
 │   ├── tenancy.php                     # Tenancy configuration (single database)
-│   └── fortify.php                     # Fortify configuration
+│   ├── fortify.php                     # Fortify configuration
+│   └── permission.php                  # Spatie permission configuration
 ├── database/
-│   └── migrations/                     # Single database migrations with tenant_id columns
+│   ├── migrations/                     # Single database migrations with tenant_id columns
+│   └── seeders/
+│       ├── CentralPermissionsSeeder.php # Seeds central permissions and roles
+│       └── PermissionsSeeder.php       # Seeds tenant permissions and roles
 ├── routes/
 │   ├── web.php                         # Central routes (includes tenant/user management)
 │   ├── shared.php                      # Shared routes between tenant and central app
