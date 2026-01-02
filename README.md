@@ -19,10 +19,89 @@ This starter kit is a fully configured Laravel application that combines multi-t
 
 - 🏢 **Complete multi-tenancy** with Laravel Tenancy
 - 🔐 **Advanced authentication** with Laravel Fortify
-- �️ **Roles & Permissions** with Spatie Laravel Permission
+- 🛡️ **Roles & Permissions** with Spatie Laravel Permission
 - 📱 **Two-factor authentication (2FA)** 
 - 🎨 **Modern UI** with Laravel Breeze and Tailwind CSS
 - 🔧 **Development tools** with Laravel Telescope and Debugbar
+
+## Available Branches
+
+This repository contains multiple branches with different feature sets. Choose the branch that best fits your project needs:
+
+### 🌿 `main` (Base)
+The base branch contains the core multi-tenancy setup with authentication:
+- Laravel 12 with multi-tenancy (Stancl/Tenancy)
+- Laravel Fortify authentication
+- Two-factor authentication (2FA)
+- Laravel Breeze UI
+- Basic tenant isolation
+
+### 🌿 `feature/tenant-and-user-management`
+Builds on `main` by adding comprehensive management interfaces:
+- ✅ **Tenant Management**: Complete CRUD interface for managing tenants from central app
+- ✅ **User Management**: Manage users across all tenants from central app
+- ✅ **Domain Management**: Associate multiple domains with each tenant
+- ✅ **Central User Command**: CLI tool to create central application users
+- ✅ **Secure Operations**: Password confirmation for destructive actions
+- ✅ **Tenant Isolation**: Automatic data scoping per tenant
+
+**Use this branch if you need:** Admin interfaces to manage tenants and users centrally without role-based access control.
+
+### 🌿 `feature/tenant-user-management-and-permissions` (Recommended)
+Builds on `feature/tenant-and-user-management` by adding a complete role and permission system:
+- ✅ All features from `feature/tenant-and-user-management`
+- ✅ **Spatie Laravel Permission**: Full RBAC implementation
+- ✅ **Central Permissions**: Control tenant and user management operations
+  - `CREATE_TENANT`, `VIEW_TENANT`, `UPDATE_TENANT`, `DELETE_TENANT`
+  - `CREATE_TENANT_USER`, `VIEW_TENANT_USER`, `UPDATE_TENANT_USER`, `DELETE_TENANT_USER`
+  - `CREATE_ROLE`, `VIEW_ROLE`, `UPDATE_ROLE`, `DELETE_ROLE`
+- ✅ **Tenant-Scoped Permissions**: Per-tenant role and permission management
+  - `VIEW_TENANT_USER_BY_TENANT`, `CREATE_TENANT_USER_BY_TENANT`, etc.
+  - `VIEW_ROLE_BY_TENANT`, `CREATE_ROLE_BY_TENANT`, etc.
+- ✅ **Role Management Interface**: CRUD operations for roles and permissions
+- ✅ **Enum-Based Permissions**: Type-safe permission definitions
+- ✅ **Middleware Protection**: Route-level permission enforcement
+- ✅ **Automatic Seeding**: Permissions and roles auto-created per tenant
+- ✅ **Super Admin Role**: Central role with all permissions
+
+**Use this branch if you need:** Complete SaaS application with granular access control, multi-tenant role management, and secure permission-based operations.
+
+### 📋 Branch Comparison
+
+| Feature | main | tenant-and-user-management | tenant-user-management-and-permissions |
+|---------|------|---------------------------|----------------------------------------|
+| Multi-Tenancy | ✅ | ✅ | ✅ |
+| Authentication (Fortify) | ✅ | ✅ | ✅ |
+| Two-Factor Auth (2FA) | ✅ | ✅ | ✅ |
+| Tenant Management UI | ❌ | ✅ | ✅ |
+| User Management UI | ❌ | ✅ | ✅ |
+| Role Management UI | ❌ | ❌ | ✅ |
+| Permission System | ❌ | ❌ | ✅ |
+| Central Permissions | ❌ | ❌ | ✅ |
+| Tenant-Scoped Permissions | ❌ | ❌ | ✅ |
+| Middleware Protection | ❌ | ❌ | ✅ |
+| CLI User Creation | ❌ | ✅ | ✅ |
+
+### 🔄 Switching Branches
+
+```bash
+# Switch to tenant and user management
+git checkout feature/tenant-and-user-management
+
+# Switch to full permissions system (recommended)
+git checkout feature/tenant-user-management-and-permissions
+
+# Return to base
+git checkout main
+```
+
+After switching branches, remember to:
+```bash
+composer install
+npm install
+php artisan migrate:fresh
+php artisan db:seed --class=CentralPermissionsSeeder  # Only for permissions branch
+```
 
 ## Key Features
 
