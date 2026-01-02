@@ -75,6 +75,99 @@ class DestroyTenantTest extends TestCase
         $this->assertModelMissing($this->tenant);
     }
 
+    public function test_destroy_tenant_deletes_associated_permissions(): void
+    {
+        // Create permissions associated with the tenant
+        Permission::create(['name' => 'test-permission-1', 'tenant_id' => $this->tenant->id]);
+        Permission::create(['name' => 'test-permission-2', 'tenant_id' => $this->tenant->id]);
+        $otherTenantPermission = Permission::create(['name' => 'other-permission', 'tenant_id' => Tenant::factory()->create()->id]);
+
+        $this->assertDatabaseHas('permissions', ['tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->user)->delete(
+            route($this->route, $this->tenant),
+            ['password' => 'password123']
+        );
+
+        $response->assertRedirect(route('tenants.index'));
+
+        // Verify tenant permissions were deleted
+        $this->assertDatabaseMissing('permissions', ['tenant_id' => $this->tenant->id]);
+
+        // Verify other tenant permissions remain
+        $this->assertModelExists($otherTenantPermission);
+    }
+
+    public function test_destroy_tenant_deletes_associated_roles(): void
+    {
+        // Create roles associated with the tenant
+        Role::create(['name' => 'test-role-1', 'tenant_id' => $this->tenant->id]);
+        Role::create(['name' => 'test-role-2', 'tenant_id' => $this->tenant->id]);
+        $otherTenantRole = Role::create(['name' => 'other-role', 'tenant_id' => Tenant::factory()->create()->id]);
+
+        $this->assertDatabaseHas('roles', ['tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->user)->delete(
+            route($this->route, $this->tenant),
+            ['password' => 'password123']
+        );
+
+        $response->assertRedirect(route('tenants.index'));
+
+        // Verify tenant roles were deleted
+        $this->assertDatabaseMissing('roles', ['tenant_id' => $this->tenant->id]);
+
+        // Verify other tenant roles remain
+        $this->assertModelExists($otherTenantRole);
+    }
+
+    public function test_destroy_tenant_deletes_associated_users(): void
+    {
+        // Create users associated with the tenant
+        User::factory()->create(['email' => 'user1@test.com', 'tenant_id' => $this->tenant->id]);
+        User::factory()->create(['email' => 'user2@test.com', 'tenant_id' => $this->tenant->id]);
+        $otherTenantUser = User::factory()->create(['email' => 'other@test.com', 'tenant_id' => Tenant::factory()]);
+
+        $this->assertDatabaseHas('users', ['tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->user)->delete(
+            route($this->route, $this->tenant),
+            ['password' => 'password123']
+        );
+
+        $response->assertRedirect(route('tenants.index'));
+
+        // Verify tenant users were deleted
+        $this->assertDatabaseMissing('users', ['email' => 'user1@test.com']);
+        $this->assertDatabaseMissing('users', ['email' => 'user2@test.com']);
+
+        // Verify other tenant users remain
+        $this->assertModelExists($otherTenantUser);
+    }
+
+    public function test_destroy_tenant_cascade_deletes_all_related_data(): void
+    {
+        // Create comprehensive test data
+        $this->tenant->domains()->create(['domain' => 'secondary.example.com']);
+        Permission::create(['name' => 'cascade-permission', 'tenant_id' => $this->tenant->id]);
+        Role::create(['name' => 'cascade-role', 'tenant_id' => $this->tenant->id]);
+        User::factory()->create(['email' => 'cascade@test.com', 'tenant_id' => $this->tenant->id]);
+
+        $response = $this->actingAs($this->user)->delete(
+            route($this->route, $this->tenant),
+            ['password' => 'password123']
+        );
+
+        $response->assertRedirect(route('tenants.index'));
+
+        // Verify all related data was deleted
+        $this->assertModelMissing($this->tenant);
+        $this->assertDatabaseMissing('domains', ['tenant_id' => $this->tenant->id]);
+        $this->assertDatabaseMissing('permissions', ['tenant_id' => $this->tenant->id]);
+        $this->assertDatabaseMissing('roles', ['tenant_id' => $this->tenant->id]);
+        $this->assertDatabaseMissing('users', ['tenant_id' => $this->tenant->id]);
+    }
+
     public function test_destroy_tenant_requires_password(): void
     {
         $response = $this->actingAs($this->user)->delete(

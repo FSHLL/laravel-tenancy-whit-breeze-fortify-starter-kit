@@ -3,6 +3,8 @@
 namespace Tests\Feature\Http\Controllers\Tenant;
 
 use App\Enums\CentralPermissions;
+use App\Enums\Permissions;
+use App\Enums\Roles;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
@@ -42,6 +44,66 @@ class StoreTenantTest extends TestCase
         $response->assertRedirect(route('tenants.index'));
         $this->assertDatabaseHas('tenants', ['id' => 'test-tenant']);
         $this->assertDatabaseHas('domains', ['domain' => 'test.example.com']);
+    }
+
+    public function test_it_creates_tenant_permissions_and_roles(): void
+    {
+        $tenantData = [
+            'id' => 'permissions-tenant',
+            'domains' => ['permissions.example.com'],
+        ];
+
+        $response = $this->post(route($this->route), $tenantData);
+
+        $response->assertRedirect(route('tenants.index'));
+
+        $tenant = Tenant::find('permissions-tenant');
+        $this->assertNotNull($tenant);
+
+        // Verify permissions were created for the tenant
+        $tenant->run(function () {
+            $permissionsCount = count(Permissions::cases());
+            $this->assertEquals($permissionsCount, Permission::count());
+
+            foreach (Permissions::cases() as $permission) {
+                $this->assertDatabaseHas('permissions', [
+                    'name' => $permission->value,
+                ]);
+            }
+        });
+    }
+
+    public function test_it_creates_tenant_roles_with_permissions(): void
+    {
+        $tenantData = [
+            'id' => 'roles-tenant',
+            'domains' => ['roles.example.com'],
+        ];
+
+        $response = $this->post(route($this->route), $tenantData);
+
+        $response->assertRedirect(route('tenants.index'));
+
+        $tenant = Tenant::find('roles-tenant');
+        $this->assertNotNull($tenant);
+
+        // Verify roles were created with correct permissions
+        $tenant->run(function () {
+            $rolesCount = count(Roles::cases());
+            $this->assertEquals($rolesCount, Role::count());
+
+            foreach (Roles::cases() as $roleEnum) {
+                $role = Role::where('name', $roleEnum->value)->first();
+                $this->assertNotNull($role);
+
+                $expectedPermissions = Permissions::byRole($roleEnum);
+                $this->assertCount(count($expectedPermissions), $role->permissions);
+
+                foreach ($expectedPermissions as $permission) {
+                    $this->assertTrue($role->hasPermissionTo($permission));
+                }
+            }
+        });
     }
 
     public function test_user_without_permission_cannot_store_tenant(): void
