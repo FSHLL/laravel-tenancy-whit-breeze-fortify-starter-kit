@@ -18,8 +18,6 @@ class CentralAppScope implements Scope
 
     public function extend(Builder $builder)
     {
-        $builder->macro('withoutCentralApp', function (Builder $builder) {
-            return $builder->withoutGlobalScope($this);
-        });
+        $builder->macro('withoutCentralApp', fn (Builder $builder) => $builder->withoutGlobalScope($this));
     }
 }
