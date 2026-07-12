@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Tenant;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class IndexTenantTest extends TestCase
@@ -133,7 +134,7 @@ class IndexTenantTest extends TestCase
         $response->assertViewHas('tenants');
 
         $tenants = $response->viewData('tenants');
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $tenants);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $tenants);
     }
 
     public function test_it_requires_authentication(): void

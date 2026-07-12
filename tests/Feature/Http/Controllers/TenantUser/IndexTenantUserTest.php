@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class IndexTenantUserTest extends TestCase
@@ -78,7 +79,7 @@ class IndexTenantUserTest extends TestCase
 
         $response->assertStatus(200);
         $users = $response->viewData('users');
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $users);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $users);
     }
 
     public function test_unauthenticated_user_cannot_access_tenant_users_index(): void
