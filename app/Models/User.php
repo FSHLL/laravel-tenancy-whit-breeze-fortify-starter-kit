@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\CentralAppScope;
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +16,7 @@ use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 #[ScopedBy(CentralAppScope::class)]
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use BelongsToTenant, HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
     /**

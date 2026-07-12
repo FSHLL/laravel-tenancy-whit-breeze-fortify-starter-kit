@@ -7,6 +7,8 @@ use Exception;
 use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain as Father;
 use Symfony\Component\HttpFoundation\Response;
 
+use function is_object;
+
 class InitializeTenancyBySubDomain extends Father
 {
     public function handle($request, Closure $next): Response

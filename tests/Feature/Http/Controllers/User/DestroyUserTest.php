@@ -9,6 +9,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -245,12 +246,12 @@ class DestroyUserTest extends TestCase
 
     public function test_delete_user_password_validation_message(): void
     {
-        $response = $this->actingAs($this->authenticatedUser)
+        $this->actingAs($this->authenticatedUser)
             ->delete($this->route, [
                 'password' => 'wrong-password',
             ]);
 
-        $errors = session()->get('errors')->getBag($this->targetUser->id);
-        $this->assertTrue($errors->has('password'));
+        $errors = session()->get('errors');
+        $this->assertTrue(Arr::has($errors, "{$this->targetUser->id}.messages.password"));
     }
 }

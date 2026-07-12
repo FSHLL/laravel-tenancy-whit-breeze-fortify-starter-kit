@@ -9,6 +9,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class IndexUserTest extends TestCase
@@ -79,7 +80,7 @@ class IndexUserTest extends TestCase
             ->assertViewHas('users');
 
         $viewUsers = $response->viewData('users');
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $viewUsers);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $viewUsers);
     }
 
     public function test_users_index_displays_user_information(): void
